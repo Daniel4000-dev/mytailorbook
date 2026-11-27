@@ -143,3 +143,226 @@
   text-align: center;
   color: var(--sf-text-secondary);
 }
+
+/* ── Unified Tab Navigation & Management Styles ── */
+.tabNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sf-bg-surface-elevated, rgba(255, 255, 255, 0.08));
+  padding: 3px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border-light);
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+}
+
+.tabBtnActive {
+  background: var(--sf-bg-primary, #ffffff);
+  color: var(--sf-text-primary, #000000);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.manageContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: calc(80px + env(safe-area-inset-top, 0px)) var(--sf-space-md) var(--sf-space-2xl);
+}
+
+.manageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.manageTitle {
+  font-size: var(--sf-text-xl);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.manageSubtitle {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+.primaryActionBtn {
+  background: var(--sf-accent-emerald, #4338CA);
+  color: var(--sf-text-on-accent, #ffffff);
+  border: none;
+  border-radius: var(--sf-radius-full);
+  padding: 8px 18px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--sf-transition-fast);
+}
+
+.primaryActionBtn:hover {
+  background: var(--sf-accent-emerald-dark, #312E81);
+}
+
+.outfitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sf-space-md);
+}
+
+.outfitCard {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.outfitCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.12);
+}
+
+.outfitCard img {
+  object-fit: cover;
+}
+
+.outfitCardFooter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-xs);
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+}
+
+.outfitCardTitle {
+  color: #ffffff;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outfitStoryBadge {
+  background: var(--sf-accent-emerald, #4338CA);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.deleteCardBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--sf-transition-fast);
+  z-index: 2;
+}
+
+.deleteCardBtn:hover {
+  background: rgba(220, 38, 38, 0.9);
+}
+
+.poolGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--sf-space-sm);
+}
+
+.poolCard {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+}
+
+.poolCard img {
+  object-fit: cover;
+}
+
+.usedBadge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-full);
+}
+
+.storyForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  max-width: 600px;
+}
+
+.emptyStateWrap {
+  padding: var(--sf-space-2xl) var(--sf-space-md);
+  text-align: center;
+  background: var(--sf-bg-surface-elevated);
+  border-radius: var(--sf-radius-lg);
+  border: 1px dashed var(--sf-border);
+}
+
+.emptyStateTitle {
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  margin: var(--sf-space-sm) 0 4px;
+}
+
+.emptyStateSubtitle {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  max-width: 400px;
+  margin: 0 auto var(--sf-space-md);
+}
+

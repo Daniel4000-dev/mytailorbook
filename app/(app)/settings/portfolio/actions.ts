@@ -310,10 +310,10 @@ export async function publishOrderStoryToPortfolioAction(
   const outfitTitle =
     customTitle ||
     order.style_name ||
-    (order.order_details ? order.order_details.slice(0, 32) : 'Bespoke Commission');
+    'Bespoke Commission';
   const outfitCaption =
     customCaption ||
-    `Bespoke commission for ${order.customer_name || 'Bespoke Client'}. Crafted with hand-stitched detailing, bespoke fitting, and tailored finish.`;
+    'Bespoke hand-tailored piece. Custom cut, fitted, and finished with signature craftsmanship.';
 
   const { data: outfit, error: outfitError } = await supabase
     .from('portfolio_outfits')

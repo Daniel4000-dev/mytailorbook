@@ -323,7 +323,13 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
                     {(o.storyModeEnabled || (o.storyPhotos && o.storyPhotos.length > 0)) && (
                       <span className={styles.storyBadge}>
                         <Symbol name="auto_awesome" size={12} />
-                        <span>Commission Story</span>
+                        <span>Craft Story</span>
+                      </span>
+                    )}
+                    {o.isVerifiedCommission && (
+                      <span className={styles.verifiedBadge} title="Verified handcrafted bespoke commission from a real client order">
+                        <Symbol name="verified" size={12} />
+                        <span>Verified</span>
                       </span>
                     )}
                   </motion.button>

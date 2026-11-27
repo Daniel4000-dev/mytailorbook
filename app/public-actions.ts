@@ -568,6 +568,7 @@ export interface PortfolioOutfit {
   materials?: string | null;
   category?: string | null;
   startingPrice?: number | null;
+  isVerifiedCommission?: boolean;
 }
 
 export interface PortfolioTestimonial {
@@ -662,14 +663,19 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
     const outfitIds = outfitRows.map((o) => o.id);
     const { data: photoRows } = await admin
       .from('portfolio_outfit_photos')
-      .select('outfit_id, kind, angle, sort_order, portfolio_photos!inner(image_url)')
+      .select('outfit_id, kind, angle, sort_order, portfolio_photos!inner(image_url, source)')
       .in('outfit_id', outfitIds)
       .order('sort_order', { ascending: true });
 
     const displayByOutfit = new Map<string, PortfolioOutfitPhoto[]>();
     const storyByOutfit = new Map<string, string[]>();
+    const verifiedOutfitSet = new Set<string>();
     for (const row of photoRows || []) {
-      const url = (row.portfolio_photos as unknown as { image_url: string }).image_url;
+      const p = row.portfolio_photos as unknown as { image_url: string; source?: string };
+      if (p.source === 'auto') {
+        verifiedOutfitSet.add(row.outfit_id);
+      }
+      const url = p.image_url;
       if (row.kind === 'display') {
         const list = displayByOutfit.get(row.outfit_id) ?? [];
         list.push({ url, angle: row.angle });
@@ -689,6 +695,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
         storyModeEnabled: o.story_mode_enabled,
         storyCaption: o.story_caption,
         storyPhotos: storyByOutfit.get(o.id) ?? [],
+        isVerifiedCommission: verifiedOutfitSet.has(o.id),
       }))
       // An outfit with zero display photos (e.g. its only photo was
       // deleted from the pool after publishing) has nothing to show —

@@ -775,6 +775,24 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
+.verifiedBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(16, 185, 129, 0.9);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
 .outfitTileMeta {
   padding: var(--sf-space-md) 0;
   display: flex;
