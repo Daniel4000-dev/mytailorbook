@@ -192,6 +192,12 @@ export default function NotificationPrompt() {
           showToast(error, 'error');
         } else {
           showToast('Notifications enabled for this device', 'success');
+          try {
+            const audio = new Audio('/sounds/shears_snip.wav');
+            audio.play().catch(() => {});
+          } catch {
+            // Audio playback blocked or unsupported
+          }
         }
         setVisible(false);
       } else if (permission === 'denied') {
