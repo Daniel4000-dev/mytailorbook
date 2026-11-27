@@ -160,7 +160,16 @@ export default function PrivacyPolicyPage() {
           we&apos;re required to retain it for legal or accounting reasons.
         </p>
 
-        <h2>10. Your Rights</h2>
+        <h2 id="account-deletion">10. Account &amp; Data Deletion (Google Play Compliance)</h2>
+        <p>
+          We provide full control over your account and personal data. You have the right to request the permanent deletion of your account and all associated workshop data at any time:
+        </p>
+        <ul>
+          <li><strong>In-App Deletion:</strong> You can delete your account directly inside the app at any time by navigating to <strong>Settings &gt; Account &gt; Danger Zone</strong> and confirming deletion. This permanently deletes your shop, client records, measurements, orders, and uploaded garment photos immediately.</li>
+          <li><strong>Web Deletion Request:</strong> If you cannot access the app or wish to request data erasure externally without opening the app, submit an erasure request by emailing our Data Protection Liaison at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your registered account email. All statutory erasure requests are verified and executed within 30 days.</li>
+        </ul>
+
+        <h2>11. Your Rights</h2>
         <p>Under the NDPA, data subjects have the right to:</p>
         <ul>
           <li>Access the personal data we hold about you.</li>
@@ -173,7 +182,7 @@ export default function PrivacyPolicyPage() {
           To exercise any of these rights, contact our Data Protection Liaison at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We respond to statutory requests within 30 days as mandated by the NDPA.
         </p>
 
-        <h2>11. Cookies &amp; Sessions</h2>
+        <h2>12. Cookies &amp; Sessions</h2>
         <p>
           We use essential first-party cookies and secure session tokens to keep you signed in securely
           between visits. We don&apos;t use cookies for advertising or cross-site tracking.
