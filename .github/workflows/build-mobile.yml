@@ -1,8 +1,6 @@
 name: Build Mobile (iOS & Android)
 
 on:
-  push:
-    branches: [staging]
   workflow_dispatch:
     inputs:
       build_type:
