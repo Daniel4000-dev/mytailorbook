@@ -239,8 +239,9 @@ export default function OwnPortfolioPage() {
               className={styles.backBtn}
               onClick={() => router.back()}
               aria-label="Back to Workshop"
+              title="Back to Workshop"
             >
-              <Symbol name="arrow_back" size={18} />
+              <Symbol name="arrow_back" size={17} />
             </button>
 
             {/* Segmented Mode Selector */}
@@ -249,6 +250,7 @@ export default function OwnPortfolioPage() {
                 type="button"
                 className={`${styles.tabBtn} ${activeTab === 'preview' ? styles.tabBtnActive : ''}`}
                 onClick={() => setActiveTab('preview')}
+                aria-label="Storefront"
               >
                 Storefront
               </button>
@@ -256,22 +258,28 @@ export default function OwnPortfolioPage() {
                 type="button"
                 className={`${styles.tabBtn} ${activeTab === 'outfits' ? styles.tabBtnActive : ''}`}
                 onClick={() => setActiveTab('outfits')}
+                aria-label={`Outfits (${outfits.length})`}
               >
-                Outfits ({outfits.length})
+                <span>Outfits</span>
+                <span className={styles.tabCount}>({outfits.length})</span>
               </button>
               <button
                 type="button"
                 className={`${styles.tabBtn} ${activeTab === 'pool' ? styles.tabBtnActive : ''}`}
                 onClick={() => setActiveTab('pool')}
+                aria-label={`Photos (${pool.length})`}
               >
-                Photos ({pool.length})
+                <span>Photos</span>
+                <span className={styles.tabCount}>({pool.length})</span>
               </button>
               <button
                 type="button"
                 className={`${styles.tabBtn} ${activeTab === 'profile' ? styles.tabBtnActive : ''}`}
                 onClick={() => setActiveTab('profile')}
+                aria-label="Story & Look"
               >
-                Story & Look
+                <span className={styles.tabLabelFull}>Story & Look</span>
+                <span className={styles.tabLabelShort} aria-hidden="true">Brand</span>
               </button>
             </nav>
           </div>
@@ -281,21 +289,23 @@ export default function OwnPortfolioPage() {
               <>
                 <button
                   type="button"
-                  className={styles.barActionBtn}
+                  className={`${styles.barActionBtn} ${styles.barActionWhatsApp}`}
                   onClick={handleShareWhatsApp}
                   title="Share showcase on WhatsApp"
+                  aria-label="Share showcase on WhatsApp"
                 >
                   <WhatsappIcon size={14} />
-                  <span>WhatsApp</span>
+                  <span className={styles.actionBtnLabel}>WhatsApp</span>
                 </button>
                 <button
                   type="button"
                   className={`${styles.barActionBtn} ${styles.barActionPrimary}`}
                   onClick={handleShare}
                   title="Copy public storefront link"
+                  aria-label="Copy public storefront link"
                 >
                   <Symbol name="share" size={13} />
-                  <span>Copy Link</span>
+                  <span className={styles.actionBtnLabel}>Copy Link</span>
                 </button>
               </>
             )}
@@ -308,9 +318,11 @@ export default function OwnPortfolioPage() {
                   setEditingOutfit(undefined);
                   setBuilderOpen(true);
                 }}
+                title="Add new outfit to portfolio"
+                aria-label="Add outfit to portfolio"
               >
                 <Symbol name="add" size={13} />
-                <span>+ Outfit</span>
+                <span className={styles.actionBtnLabel}>+ Outfit</span>
               </button>
             )}
           </div>

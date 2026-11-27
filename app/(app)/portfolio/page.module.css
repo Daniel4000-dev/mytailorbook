@@ -14,13 +14,14 @@
   background: var(--sf-glass-fallback-bg);
   border: var(--sf-glass-border);
   border-radius: var(--sf-radius-full, 9999px);
-  padding: 8px 16px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   box-shadow: var(--sf-glass-shadow-floating);
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
@@ -50,12 +51,15 @@
 .barLeftGroup {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .backBtn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,7 +96,8 @@
 .barActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .barActionBtn {
@@ -107,14 +112,28 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .barActionBtn:hover {
   background: var(--sf-bg-surface-hover);
   color: var(--sf-text-primary);
   border-color: var(--sf-border);
+}
+
+.barActionWhatsApp {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.barActionWhatsApp:hover {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border-color: #10b981;
 }
 
 .barActionPrimary {
@@ -128,10 +147,8 @@
   color: #FFFFFF;
 }
 
-@media (max-width: 640px) {
-  .barTagText {
-    display: none;
-  }
+.actionBtnLabel {
+  display: inline;
 }
 
 .status {
@@ -148,18 +165,28 @@
 .tabNav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: var(--sf-bg-surface-elevated, rgba(255, 255, 255, 0.08));
   padding: 3px;
   border-radius: var(--sf-radius-full);
   border: 1px solid var(--sf-border-light);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.tabNav::-webkit-scrollbar {
+  display: none;
 }
 
 .tabBtn {
   background: transparent;
   border: none;
   border-radius: var(--sf-radius-full);
-  padding: 5px 12px;
+  padding: 5px 11px;
   font-size: 11px;
   font-weight: 600;
   font-family: inherit;
@@ -167,12 +194,29 @@
   cursor: pointer;
   transition: all var(--sf-transition-fast);
   white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .tabBtnActive {
   background: var(--sf-bg-primary, #ffffff);
   color: var(--sf-text-primary, #000000);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tabCount {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.tabLabelFull {
+  display: inline;
+}
+
+.tabLabelShort {
+  display: none;
 }
 
 .manageContainer {
@@ -364,5 +408,129 @@
   color: var(--sf-text-secondary);
   max-width: 400px;
   margin: 0 auto var(--sf-space-md);
+}
+
+/* ── Responsive Adaptations for Mobile & Tablet ── */
+@media (max-width: 768px) {
+  .topFloatingBar {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    width: calc(100% - 20px);
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .backBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .tabBtn {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+
+  .manageContainer {
+    padding-top: calc(72px + env(safe-area-inset-top, 0px));
+    padding-left: var(--sf-space-sm);
+    padding-right: var(--sf-space-sm);
+  }
+}
+
+@media (max-width: 640px) {
+  .topFloatingBar {
+    width: calc(100% - 16px);
+    padding: 5px 6px;
+    gap: 6px;
+  }
+
+  .barLeftGroup {
+    gap: 5px;
+  }
+
+  .tabLabelFull {
+    display: none;
+  }
+
+  .tabLabelShort {
+    display: inline;
+  }
+
+  .tabBtn {
+    padding: 4px 7px;
+    font-size: 10.5px;
+  }
+
+  /* Compact icon-only buttons on mobile screens */
+  .actionBtnLabel {
+    display: none;
+  }
+
+  .barActionBtn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: var(--sf-radius-full);
+  }
+
+  .manageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sf-space-sm);
+  }
+
+  .manageTitle {
+    font-size: var(--sf-text-lg);
+  }
+
+  .manageSubtitle {
+    font-size: 11.5px;
+  }
+
+  .primaryActionBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .outfitsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sf-space-sm);
+  }
+
+  .poolGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+}
+
+@media (max-width: 380px) {
+  .topFloatingBar {
+    width: calc(100% - 12px);
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .backBtn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .tabBtn {
+    padding: 4px 5px;
+    font-size: 10px;
+    gap: 2px;
+  }
+
+  .barActionBtn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .outfitsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .poolGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 

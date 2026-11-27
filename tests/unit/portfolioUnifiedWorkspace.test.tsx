@@ -265,4 +265,45 @@ describe('Unified Portfolio Workspace & Image-First Showcase Suite', () => {
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
   });
+
+  // State 4: Responsive Header Navigation & Action Controls
+  it('State 4 (Responsive Header): renders adaptive tabs with counts, back button, and accessible action controls', async () => {
+    mockGetPortfolioPoolAction.mockResolvedValue([
+      { id: 'p1', imageUrl: '/images/1.jpg', source: 'manual' as const, createdAt: new Date().toISOString(), usedInOutfitIds: [] },
+      { id: 'p2', imageUrl: '/images/2.jpg', source: 'auto' as const, createdAt: new Date().toISOString(), usedInOutfitIds: [] },
+    ]);
+    mockGetPortfolioOutfitsAction.mockResolvedValue([
+      { id: 'o1', title: 'Suit 1', storyModeEnabled: false, sortOrder: 0, createdAt: new Date().toISOString(), photos: [] },
+    ]);
+
+    render(
+      <ToastProvider>
+        <OwnPortfolioPage />
+      </ToastProvider>
+    );
+
+    // Verify back button with title and accessible label
+    const backBtn = screen.getByRole('button', { name: /Back to Workshop/i });
+    expect(backBtn).toBeDefined();
+
+    // Verify tab badges and accessible names once data loads
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Storefront' })).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Outfits (1)' })).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Photos (2)' })).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Story & Look' })).toBeDefined();
+    });
+
+    // Verify preview mode actions (WhatsApp and Copy Link)
+    expect(screen.getByRole('button', { name: /Share showcase on WhatsApp/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Copy public storefront link/i })).toBeDefined();
+
+    // Switch to Outfits tab and verify '+ Outfit' action button is present
+    const outfitsBtn = screen.getByRole('button', { name: 'Outfits (1)' });
+    fireEvent.click(outfitsBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add outfit to portfolio/i })).toBeDefined();
+    });
+  });
 });
