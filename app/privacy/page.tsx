@@ -86,11 +86,8 @@ export default function PrivacyPolicyPage() {
         <p>
           Like most web applications, our hosting provider (Vercel) automatically logs standard
           technical data for security and reliability — IP address, browser type, and request
-          timestamps. We also use PostHog, a product analytics tool, to understand how the app is
-          used — which pages and features people visit, and where people drop off during signup or
-          checkout — so we can improve it. This is product analytics, not advertising: we don&apos;t run
-          ad trackers, and we don&apos;t send PostHog your customers&apos; names, phone numbers,
-          measurements, or any other data you&apos;ve entered about them.
+          timestamps. We do not run third-party advertising trackers, and we do not sell or monetize
+          your activity or your customers&apos; data.
         </p>
 
         <h2>3. How We Use Information</h2>
@@ -119,7 +116,6 @@ export default function PrivacyPolicyPage() {
           <li><strong>Supabase</strong> — our database and authentication provider. All account data, studio data, customer records, and order information is stored here.</li>
           <li><strong>Vercel</strong> — hosts the application itself.</li>
           <li><strong>Paystack</strong> — processes Premium subscription payments. We never see or store your card details ourselves.</li>
-          <li><strong>PostHog</strong> — product analytics, described in Section 2.4. Receives usage events (pages visited, features used) tied to your account id, never your customers&apos; data.</li>
           <li><strong>Resend</strong> — sends account-related emails (e.g., password resets), where configured.</li>
           <li><strong>Google</strong> — if you choose &quot;Sign in with Google,&quot; Google authenticates your identity for us.</li>
         </ul>
@@ -164,7 +160,16 @@ export default function PrivacyPolicyPage() {
           we&apos;re required to retain it for legal or accounting reasons.
         </p>
 
-        <h2>10. Your Rights</h2>
+        <h2 id="account-deletion">10. Account &amp; Data Deletion (Google Play Compliance)</h2>
+        <p>
+          We provide full control over your account and personal data. You have the right to request the permanent deletion of your account and all associated workshop data at any time:
+        </p>
+        <ul>
+          <li><strong>In-App Deletion:</strong> You can delete your account directly inside the app at any time by navigating to <strong>Settings &gt; Account &gt; Danger Zone</strong> and confirming deletion. This permanently deletes your shop, client records, measurements, orders, and uploaded garment photos immediately.</li>
+          <li><strong>Web Deletion Request:</strong> If you cannot access the app or wish to request data erasure externally without opening the app, submit an erasure request by emailing our Data Protection Liaison at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your registered account email. All statutory erasure requests are verified and executed within 30 days.</li>
+        </ul>
+
+        <h2>11. Your Rights</h2>
         <p>Under the NDPA, data subjects have the right to:</p>
         <ul>
           <li>Access the personal data we hold about you.</li>
@@ -177,11 +182,10 @@ export default function PrivacyPolicyPage() {
           To exercise any of these rights, contact our Data Protection Liaison at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We respond to statutory requests within 30 days as mandated by the NDPA.
         </p>
 
-        <h2>11. Cookies &amp; Sessions</h2>
+        <h2>12. Cookies &amp; Sessions</h2>
         <p>
-          We use an essential cookie to keep you signed in securely between visits, and PostHog (see
-          Section 2.4) sets its own cookie/local storage to recognize repeat visits from the same
-          browser for analytics. We don&apos;t use cookies for advertising or cross-site tracking.
+          We use essential first-party cookies and secure session tokens to keep you signed in securely
+          between visits. We don&apos;t use cookies for advertising or cross-site tracking.
         </p>
 
         <h2>12. Age Eligibility &amp; Children&apos;s Privacy</h2>

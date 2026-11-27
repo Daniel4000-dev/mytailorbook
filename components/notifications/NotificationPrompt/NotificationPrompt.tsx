@@ -8,7 +8,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './NotificationPrompt.module.css';
 
 const DISMISS_KEY = 'mtb_notif_prompt_dismissed_at';
-const RESHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const RESHOW_AFTER_MS = 2 * 24 * 60 * 60 * 1000; // 2 days (re-prompts every couple of days until registered)
 const SHOW_DELAY_MS = 2400;
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -51,29 +51,57 @@ async function getServiceWorkerForPush(timeoutMs = 6000): Promise<ServiceWorkerR
     throw new Error('Push notifications are not supported on this browser.');
   }
 
-  // 1. Fast path: check existing registration
+  // 1. Check existing registration
   let reg = await navigator.serviceWorker.getRegistration();
 
-  // 2. If not registered yet, register now
+  // 2. If not registered yet, initiate registration
   if (!reg) {
     reg = await navigator.serviceWorker.register('/sw.js');
   }
 
-  // If pushManager is already accessible on reg, return it immediately without hanging on ready
-  if (reg && 'pushManager' in reg) {
+  // 3. If already active, return immediately
+  if (reg?.active) {
     return reg;
   }
 
-  // 3. Fallback: race against ready with a strict timeout
-  return Promise.race([
-    navigator.serviceWorker.ready,
-    new Promise<ServiceWorkerRegistration>((resolve, reject) =>
-      setTimeout(() => {
-        if (reg) resolve(reg);
-        else reject(new Error('Notification service setup timed out. Please try again.'));
-      }, timeoutMs)
-    ),
-  ]);
+  // 4. Wait for activation with a reliable timeout race
+  return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      if (reg?.active || reg?.pushManager) {
+        resolve(reg);
+      } else {
+        reject(new Error('Notification service is initializing. Please try again in a moment.'));
+      }
+    }, timeoutMs);
+
+    navigator.serviceWorker.ready.then((readyReg) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(readyReg);
+    }).catch(() => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (reg) resolve(reg);
+      else reject(new Error('Failed to initialize notification service.'));
+    });
+
+    const worker = reg?.installing || reg?.waiting;
+    if (worker) {
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'activated' && !settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(reg!);
+        }
+      });
+    }
+  });
 }
 
 export default function NotificationPrompt() {
@@ -83,29 +111,46 @@ export default function NotificationPrompt() {
   const [enabling, setEnabling] = useState(false);
 
   useEffect(() => {
-    try {
-      // Only prompt authenticated users who haven't dismissed recently
-      if (!user) return;
-      if (typeof window === 'undefined') return;
-      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    let cancelled = false;
 
-      // If permission has already been determined (granted or denied), never prompt
-      if (!window.Notification || window.Notification.permission !== 'default') return;
+    async function checkSubscriptionAndPrompt() {
+      try {
+        if (!user || typeof window === 'undefined') return;
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
 
-      if (isDismissedRecently()) return;
+        // On iOS, Web Push is only supported once added to Home Screen (standalone mode)
+        if (isIOS() && !isStandalone()) return;
 
-      // On iOS, Web Push is only supported once added to Home Screen (standalone mode)
-      if (isIOS() && !isStandalone()) return;
+        // 1. As long as this device is already registered to receive push notifications, never prompt
+        if ('PushManager' in window) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          const existingSub = await reg?.pushManager?.getSubscription();
+          if (existingSub) {
+            return;
+          }
+        }
 
-      // Delay slightly after page mount so it feels smooth and natural
-      const timer = window.setTimeout(() => {
-        setVisible(true);
-      }, SHOW_DELAY_MS);
+        // 2. If user dismissed recently within 2 days, respect the couple-of-days rest interval
+        if (isDismissedRecently()) return;
 
-      return () => window.clearTimeout(timer);
-    } catch {
-      // Gracefully ignore notification check failures in restricted webviews
+        if (cancelled) return;
+
+        // 3. Delay slightly after page mount so it feels smooth and natural
+        const timer = window.setTimeout(() => {
+          if (!cancelled) setVisible(true);
+        }, SHOW_DELAY_MS);
+
+        return () => window.clearTimeout(timer);
+      } catch {
+        // Gracefully ignore notification check failures in restricted webviews
+      }
     }
+
+    checkSubscriptionAndPrompt();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const dismiss = useCallback(() => {
@@ -147,6 +192,12 @@ export default function NotificationPrompt() {
           showToast(error, 'error');
         } else {
           showToast('Notifications enabled for this device', 'success');
+          try {
+            const audio = new Audio('/sounds/shears_snip.wav');
+            audio.play().catch(() => {});
+          } catch {
+            // Audio playback blocked or unsupported
+          }
         }
         setVisible(false);
       } else if (permission === 'denied') {
@@ -160,7 +211,16 @@ export default function NotificationPrompt() {
       }
     } catch (err) {
       console.error('Failed to enable push notifications:', err);
-      const message = err instanceof Error ? err.message : 'Failed to enable notifications';
+      let message = 'Failed to enable notifications';
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          message = 'Notifications are blocked in your system or browser settings.';
+        } else if (err.message.includes('no active Service Worker')) {
+          message = 'Service worker is still activating. Please try again in a few seconds.';
+        } else {
+          message = err.message;
+        }
+      }
       showToast(message, 'error');
       setVisible(false);
     } finally {

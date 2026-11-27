@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
-import { trackEvent } from '@/lib/analytics';
 import styles from './AppTour.module.css';
 
 // Bump this if the tour's steps or targets change meaningfully — a
@@ -220,7 +219,6 @@ export default function AppTour() {
 
   const dismiss = (completed: boolean) => {
     setActive(false);
-    trackEvent(completed ? 'app_tour_completed' : 'app_tour_skipped', { step, ofSteps: steps.length });
     if (!user) return;
     try {
       localStorage.setItem(tourStorageKey(user.uid), '1');

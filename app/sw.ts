@@ -129,13 +129,18 @@ self.addEventListener('push', (event) => {
   }
 
   const title = payload.title || `${APP_CONFIG.name} Workshop`;
+  const notificationOptions = {
+    body: payload.body,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { orderId: payload.orderId, url: payload.url },
+    vibrate: [80, 50, 80],
+    silent: false,
+    sound: '/sounds/shears_snip.wav',
+  } as unknown as NotificationOptions;
+
   const promises: Promise<unknown>[] = [
-    self.registration.showNotification(title, {
-      body: payload.body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data: { orderId: payload.orderId, url: payload.url },
-    }),
+    self.registration.showNotification(title, notificationOptions),
   ];
 
   // Update phone home screen icon badge count

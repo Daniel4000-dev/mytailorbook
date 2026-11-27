@@ -19,29 +19,75 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
+function isStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+}
+
+function isIOS(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /iPhone|iPad|iPod/.test(window.navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+}
+
 async function getServiceWorkerForPush(timeoutMs = 6000): Promise<ServiceWorkerRegistration> {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Push notifications are not supported on this browser.');
   }
 
+  // 1. Check existing registration
   let reg = await navigator.serviceWorker.getRegistration();
+
+  // 2. If not registered yet, initiate registration
   if (!reg) {
     reg = await navigator.serviceWorker.register('/sw.js');
   }
 
-  if (reg && 'pushManager' in reg) {
+  // 3. If already active, return immediately
+  if (reg?.active) {
     return reg;
   }
 
-  return Promise.race([
-    navigator.serviceWorker.ready,
-    new Promise<ServiceWorkerRegistration>((resolve, reject) =>
-      setTimeout(() => {
-        if (reg) resolve(reg);
-        else reject(new Error('Notification service setup timed out. Please try again.'));
-      }, timeoutMs)
-    ),
-  ]);
+  // 4. Wait for activation with a reliable timeout race
+  return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      if (reg?.active || reg?.pushManager) {
+        resolve(reg);
+      } else {
+        reject(new Error('Notification service is initializing. Please try again in a moment.'));
+      }
+    }, timeoutMs);
+
+    navigator.serviceWorker.ready.then((readyReg) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(readyReg);
+    }).catch(() => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (reg) resolve(reg);
+      else reject(new Error('Failed to initialize notification service.'));
+    });
+
+    const worker = reg?.installing || reg?.waiting;
+    if (worker) {
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'activated' && !settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(reg!);
+        }
+      });
+    }
+  });
 }
 
 export default function PushNotificationToggle() {
@@ -67,6 +113,14 @@ export default function PushNotificationToggle() {
   }, []);
 
   const handleEnable = async () => {
+    if (isIOS() && !isStandalone()) {
+      showToast(
+        'On iPhone, push notifications require adding this app to your Home Screen first (tap Share > Add to Home Screen).',
+        'info'
+      );
+      return;
+    }
+
     setWorking(true);
     try {
       const permission = await Notification.requestPermission();
@@ -104,7 +158,16 @@ export default function PushNotificationToggle() {
       showToast('Notifications enabled', 'success');
     } catch (err) {
       console.error('Failed to enable push notifications:', err);
-      const message = err instanceof Error ? err.message : 'Failed to enable notifications';
+      let message = 'Failed to enable notifications';
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          message = 'Notifications are blocked in your system or browser settings.';
+        } else if (err.message.includes('no active Service Worker')) {
+          message = 'Service worker is still activating. Please try again in a few seconds.';
+        } else {
+          message = err.message;
+        }
+      }
       showToast(message, 'error');
     } finally {
       setWorking(false);

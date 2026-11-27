@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { trackEvent } from '@/lib/analytics';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
 import { ROUTES } from '@/lib/routes';
@@ -200,11 +199,6 @@ export default function OnboardingPage() {
         setApiError(result.error);
         return;
       }
-
-      trackEvent('onboarding_completed', {
-        via: isGoogleAccount ? 'google' : 'email',
-        goal: data.goal,
-      });
 
       await refreshProfile();
       window.location.href = ROUTES.dashboard;
