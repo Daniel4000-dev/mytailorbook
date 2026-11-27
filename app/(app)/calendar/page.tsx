@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -10,15 +9,13 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
-import Avatar from '@/components/ui/Avatar/Avatar';
 import FAB from '@/components/ui/FAB/FAB';
-import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import AddEventSheet from './_components/AddEventSheet';
 import FittingVerdictModal from './_components/FittingVerdictModal';
+import AgendaCard from './_components/AgendaCard';
 import { getCalendarEvents, updateEventStatus, recordFittingVerdict } from '@/app/actions/calendar';
-import { getWhatsAppLink, getTelLink, formatPhone } from '@/lib/formatters';
-import { ROUTES } from '@/lib/routes';
-import type { CalendarEvent, Order } from '@/lib/types';
+import { getWhatsAppLink } from '@/lib/formatters';
+import type { CalendarEvent } from '@/lib/types';
 import styles from './page.module.css';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -563,120 +560,16 @@ function CalendarContent() {
               ) : (
                 <div className={styles.eventsList}>
                   {selectedDayEvents.map((evt) => {
-                    const isDeadline = evt.id.startsWith('order-deadline-') || evt.type === 'dispatch';
-                    const isFitting = evt.type === 'fitting';
-                    const isCompleted = evt.status === 'completed';
                     const customer = customers.find((c) => c.id === evt.relatedCustomerId);
-
                     return (
-                      <article
+                      <AgendaCard
                         key={evt.id}
-                        className={`${styles.agendaCard} ${isCompleted ? styles.agendaCardCompleted : ''}`}
-                      >
-                        <div
-                          className={`${styles.agendaLeftBorder} ${
-                            isDeadline
-                              ? styles.borderDeadline
-                              : isFitting
-                              ? styles.borderFitting
-                              : styles.borderTask
-                          }`}
-                        />
-                        <div className={styles.agendaBody}>
-                          <div className={styles.agendaTopRow}>
-                            <div className={styles.agendaTitleBlock}>
-                              {customer && (
-                                <Avatar name={customer.fullName} size="sm" shape="squircle" />
-                              )}
-                              <div>
-                                <h4 className={styles.agendaEventTitle}>{evt.title}</h4>
-                                {evt.description && (
-                                  <p className={styles.agendaEventDesc}>{evt.description}</p>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className={styles.timeAndStatus}>
-                              <span className={styles.timeTag}>
-                                {evt.startTime
-                                  ? `${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ''}`
-                                  : 'All day'}
-                              </span>
-
-                              {isFitting && (
-                                <span
-                                  className={`${styles.fittingBadge} ${
-                                    isCompleted ? styles.fittingBadgeDone : styles.fittingBadgePending
-                                  }`}
-                                >
-                                  {isCompleted ? 'Fitted' : 'Pending'}
-                                </span>
-                              )}
-
-                              {!isDeadline && (
-                                <button
-                                  type="button"
-                                  className={`${styles.statusCheckBtn} ${isCompleted ? styles.statusCheckBtnDone : ''}`}
-                                  onClick={() => handleToggleEventStatus(evt)}
-                                  title={isCompleted ? 'Mark pending' : 'Mark completed'}
-                                  aria-label="Toggle completion"
-                                >
-                                  <Symbol name="check" size={14} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Action Strip */}
-                          <div className={styles.agendaActionStrip}>
-                            {/* Record Fitting Verdict */}
-                            {isFitting && (
-                              <button
-                                type="button"
-                                className={styles.verdictBtn}
-                                onClick={() => setVerdictEvent(evt)}
-                                title="Record fitting session outcome"
-                              >
-                                <Symbol name="straighten" size={13} />
-                                <span>{isCompleted ? 'Update Verdict' : 'Record Verdict'}</span>
-                              </button>
-                            )}
-
-                            {isDeadline && evt.relatedOrderId ? (
-                              <Link
-                                href={ROUTES.productionOrder(evt.relatedOrderId)}
-                                className={styles.viewOrderBtn}
-                              >
-                                <Symbol name="content_cut" size={14} />
-                                <span>Open Workshop Slip</span>
-                              </Link>
-                            ) : null}
-
-                            {isFitting && customer?.whatsappNumber ? (
-                              <button
-                                type="button"
-                                className={styles.whatsAppReminderBtn}
-                                onClick={() => handleWhatsAppFittingReminder(evt)}
-                                title="Send WhatsApp appointment reminder to client"
-                              >
-                                <WhatsappIcon size={14} />
-                                <span>Remind on WhatsApp</span>
-                              </button>
-                            ) : null}
-
-                            {customer?.whatsappNumber && (
-                              <a
-                                href={getTelLink(customer.whatsappNumber)}
-                                className={styles.callClientChip}
-                                title="Call client"
-                              >
-                                <Symbol name="call" size={12} />
-                                <span>{formatPhone(customer.whatsappNumber)}</span>
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </article>
+                        event={evt}
+                        customer={customer}
+                        onToggleStatus={handleToggleEventStatus}
+                        onOpenVerdict={setVerdictEvent}
+                        onWhatsAppReminder={handleWhatsAppFittingReminder}
+                      />
                     );
                   })}
                 </div>
@@ -706,117 +599,16 @@ function CalendarContent() {
                 ) : (
                   <div className={styles.eventsList}>
                     {dayGroup.events.map((evt) => {
-                      const isDeadline = evt.id.startsWith('order-deadline-') || evt.type === 'dispatch';
-                      const isFitting = evt.type === 'fitting';
-                      const isCompleted = evt.status === 'completed';
                       const customer = customers.find((c) => c.id === evt.relatedCustomerId);
-
                       return (
-                        <article
+                        <AgendaCard
                           key={evt.id}
-                          className={`${styles.agendaCard} ${isCompleted ? styles.agendaCardCompleted : ''}`}
-                        >
-                          <div
-                            className={`${styles.agendaLeftBorder} ${
-                              isDeadline
-                                ? styles.borderDeadline
-                                : isFitting
-                                ? styles.borderFitting
-                                : styles.borderTask
-                            }`}
-                          />
-                          <div className={styles.agendaBody}>
-                            <div className={styles.agendaTopRow}>
-                              <div className={styles.agendaTitleBlock}>
-                                {customer && (
-                                  <Avatar name={customer.fullName} size="sm" shape="squircle" />
-                                )}
-                                <div>
-                                  <h4 className={styles.agendaEventTitle}>{evt.title}</h4>
-                                  {evt.description && (
-                                    <p className={styles.agendaEventDesc}>{evt.description}</p>
-                                  )}
-                                </div>
-                              </div>
-                              <div className={styles.timeAndStatus}>
-                                <span className={styles.timeTag}>
-                                  {evt.startTime
-                                    ? `${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ''}`
-                                    : 'All day'}
-                                </span>
-
-                                {isFitting && (
-                                  <span
-                                    className={`${styles.fittingBadge} ${
-                                      isCompleted ? styles.fittingBadgeDone : styles.fittingBadgePending
-                                    }`}
-                                  >
-                                    {isCompleted ? 'Fitted' : 'Pending'}
-                                  </span>
-                                )}
-
-                                {!isDeadline && (
-                                  <button
-                                    type="button"
-                                    className={`${styles.statusCheckBtn} ${isCompleted ? styles.statusCheckBtnDone : ''}`}
-                                    onClick={() => handleToggleEventStatus(evt)}
-                                    title={isCompleted ? 'Mark pending' : 'Mark completed'}
-                                    aria-label="Toggle completion"
-                                  >
-                                    <Symbol name="check" size={14} />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className={styles.agendaActionStrip}>
-                              {isFitting && (
-                                <button
-                                  type="button"
-                                  className={styles.verdictBtn}
-                                  onClick={() => setVerdictEvent(evt)}
-                                  title="Record fitting session outcome"
-                                >
-                                  <Symbol name="straighten" size={13} />
-                                  <span>{isCompleted ? 'Update Verdict' : 'Record Verdict'}</span>
-                                </button>
-                              )}
-
-                              {isDeadline && evt.relatedOrderId ? (
-                                <Link
-                                  href={ROUTES.productionOrder(evt.relatedOrderId)}
-                                  className={styles.viewOrderBtn}
-                                >
-                                  <Symbol name="content_cut" size={14} />
-                                  <span>Open Workshop Slip</span>
-                                </Link>
-                              ) : null}
-
-                              {isFitting && customer?.whatsappNumber ? (
-                                <button
-                                  type="button"
-                                  className={styles.whatsAppReminderBtn}
-                                  onClick={() => handleWhatsAppFittingReminder(evt)}
-                                  title="Send WhatsApp appointment reminder to client"
-                                >
-                                  <WhatsappIcon size={14} />
-                                  <span>Remind on WhatsApp</span>
-                                </button>
-                              ) : null}
-
-                              {customer?.whatsappNumber && (
-                                <a
-                                  href={getTelLink(customer.whatsappNumber)}
-                                  className={styles.callClientChip}
-                                  title="Call client"
-                                >
-                                  <Symbol name="call" size={12} />
-                                  <span>{formatPhone(customer.whatsappNumber)}</span>
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        </article>
+                          event={evt}
+                          customer={customer}
+                          onToggleStatus={handleToggleEventStatus}
+                          onOpenVerdict={setVerdictEvent}
+                          onWhatsAppReminder={handleWhatsAppFittingReminder}
+                        />
                       );
                     })}
                   </div>

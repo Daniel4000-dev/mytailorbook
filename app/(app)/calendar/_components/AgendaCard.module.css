@@ -1,0 +1,365 @@
+/* =========================================================================
+   AGENDA / FITTING CARD COMPONENT (RESPONSIVE & BESPOKE CRAFT)
+   ========================================================================= */
+
+.card {
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.06);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global([data-theme='dark']) .card {
+  background: #161B26;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), 0 12px 28px -6px rgba(67, 56, 202, 0.1);
+}
+
+.cardCompleted {
+  opacity: 0.65;
+}
+
+/* ── Top Header Row ── */
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.clientBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.metaWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Category Pill Badges (replaces the old generic AI colored border stripe) */
+.categoryPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  width: fit-content;
+  line-height: 1.25;
+}
+
+.categoryFitting {
+  background: rgba(147, 51, 234, 0.1);
+  color: #9333EA;
+  border: 1px solid rgba(147, 51, 234, 0.25);
+}
+
+.categoryDeadline {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.categoryTask {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.customerSub {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Time & Status */
+.timeAndStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.timeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-surface-variant);
+  border: var(--sf-glass-border-subtle);
+  padding: 4px 9px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+}
+
+.fittingBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+}
+
+.fittingBadgePending {
+  background: rgba(147, 51, 234, 0.12);
+  color: #9333EA;
+  border: 1px solid rgba(147, 51, 234, 0.25);
+}
+
+.fittingBadgeDone {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.statusCheckBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sf-border-default);
+  background: transparent;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.statusCheckBtn:hover {
+  border-color: var(--sf-primary);
+  color: var(--sf-primary);
+}
+
+.statusCheckBtnDone {
+  background: #10B981;
+  border-color: #10B981;
+  color: #FFFFFF;
+}
+
+/* ── Full-Width Description Box ── */
+.descContainer {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--sf-bg-surface-variant, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.07));
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+:global([data-theme='dark']) .descContainer {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.descHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sf-text-tertiary);
+}
+
+.descIcon {
+  color: var(--sf-text-secondary);
+}
+
+.descText {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--sf-text-primary);
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+/* ── Action Strip ── */
+.actionStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+  width: 100%;
+}
+
+.verdictBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(147, 51, 234, 0.12);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  color: #9333EA;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 12px;
+  min-height: 36px;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.verdictBtn:hover {
+  background: #9333EA;
+  color: #FFFFFF;
+}
+
+.whatsAppReminderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  color: #15803D;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 12px;
+  min-height: 36px;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.whatsAppReminderBtn:hover {
+  background: #25D366;
+  color: #FFFFFF;
+}
+
+.viewOrderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.3);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 7px 14px;
+  min-height: 36px;
+  border-radius: var(--sf-radius-full);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.viewOrderBtn:hover {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.45);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.callClientChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--sf-glass-bg);
+  border: var(--sf-glass-border-subtle);
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  min-height: 36px;
+  border-radius: var(--sf-radius-full);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.callClientChip:hover {
+  color: var(--sf-text-primary);
+  border-color: var(--sf-glass-border);
+}
+
+/* ── Mobile Responsive Adjustments ── */
+@media (max-width: 540px) {
+  .card {
+    padding: 14px;
+    gap: 10px;
+    border-radius: 16px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .timeAndStatus {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 4px;
+    border-top: 1px dashed var(--sf-border-light, rgba(0, 0, 0, 0.06));
+  }
+
+  .actionStrip {
+    gap: 6px;
+  }
+
+  .verdictBtn,
+  .whatsAppReminderBtn,
+  .viewOrderBtn {
+    flex: 1 1 calc(50% - 4px);
+    min-height: 38px;
+  }
+
+  .callClientChip {
+    flex: 1 1 100%;
+    min-height: 36px;
+  }
+}

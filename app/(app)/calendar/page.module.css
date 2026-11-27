@@ -145,7 +145,7 @@
   align-items: center;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 0 14px;
+  padding: 2px 2px 6px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
@@ -508,239 +508,124 @@
   gap: 12px;
 }
 
-.agendaCard {
-  background: var(--sf-glass-gradient, var(--sf-glass-bg));
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border: var(--sf-glass-border);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.06);
-  border-radius: 20px;
-  display: flex;
-  overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* =========================================================================
+   5. RESPONSIVE CALENDAR VIEWPORT OPTIMIZATIONS (<540px, <480px)
+   ========================================================================= */
+
+@media (max-width: 540px) {
+  .topControlCard {
+    padding: 12px 14px;
+    border-radius: 18px;
+    gap: 10px;
+  }
+
+  .monthNavRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .navButtonsGroup {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .rightNavActions {
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .todayPillBtn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .viewSegmentedControl {
+    flex: 1.5;
+    justify-content: center;
+  }
+
+  .viewBtn {
+    flex: 1;
+    justify-content: center;
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+
+  .selectedDayHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .selectedDayTitleWrap {
+    justify-content: space-between;
+  }
+
+  .selectedDayHeader > button,
+  .selectedDayHeader :global(button) {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
-:global([data-theme='dark']) .agendaCard {
-  background: #161B26;
-  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
-}
+@media (max-width: 480px) {
+  .calendarCard {
+    padding: 12px 8px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+  }
 
-.agendaCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), 0 14px 28px -6px rgba(67, 56, 202, 0.12);
-}
+  .weekDaysHeader {
+    gap: 2px;
+    margin-bottom: 6px;
+  }
 
-.agendaCardCompleted {
-  opacity: 0.65;
-}
+  .weekDayCell {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
 
-.agendaLeftBorder {
-  width: 5px;
-  flex-shrink: 0;
-}
+  .daysGrid {
+    gap: 3px;
+  }
 
-.borderDeadline {
-  background: #DC2626;
-}
+  .dayCell {
+    min-height: 48px;
+    padding: 4px 2px;
+    border-radius: 8px;
+  }
 
-.borderFitting {
-  background: #9333EA;
-}
+  .dayNumber {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
 
-.borderTask {
-  background: #F59E0B;
-}
+  .dayCell.today .dayNumber {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
 
-.agendaBody {
-  padding: 14px 16px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
+  .eventDot {
+    width: 5px;
+    height: 5px;
+  }
 
-.agendaTopRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
+  .mobileDotsRow {
+    gap: 2px;
+  }
 
-.agendaTitleBlock {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
-}
-
-.agendaEventTitle {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  margin: 0 0 3px 0;
-  line-height: 1.3;
-}
-
-.agendaEventDesc {
-  font-size: 13px;
-  color: var(--sf-text-secondary);
-  margin: 0;
-  line-height: 1.35;
-}
-
-.timeAndStatus {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.timeTag {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--sf-text-secondary);
-  background: var(--sf-glass-bg);
-  border: var(--sf-glass-border-subtle);
-  padding: 3px 10px;
-  border-radius: var(--sf-radius-full);
-}
-
-.statusCheckBtn {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--sf-border-default);
-  background: transparent;
-  color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.statusCheckBtn:hover {
-  border-color: var(--sf-primary);
-}
-
-.statusCheckBtnDone {
-  background: #10B981;
-  border-color: #10B981;
-  color: #FFFFFF;
-}
-
-/* Action Strip */
-.agendaActionStrip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding-top: 4px;
-}
-
-.viewOrderBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
-  border: 1px solid rgba(67, 56, 202, 0.4);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.3);
-  color: #FFFFFF;
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  padding: 6px 12px;
-  border-radius: var(--sf-radius-full);
-  transition: all 0.15s ease;
-}
-
-.viewOrderBtn:hover {
-  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.45);
-  color: #FFFFFF;
-  transform: translateY(-1px);
-}
-
-.whatsAppReminderBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(37, 211, 102, 0.12);
-  border: 1px solid rgba(37, 211, 102, 0.3);
-  color: #15803D;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: var(--sf-radius-full);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.whatsAppReminderBtn:hover {
-  background: #25D366;
-  color: #FFFFFF;
-}
-
-.callClientChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--sf-glass-bg);
-  border: var(--sf-glass-border-subtle);
-  color: var(--sf-text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 10px;
-  border-radius: var(--sf-radius-full);
-  transition: all 0.15s ease;
-}
-
-.callClientChip:hover {
-  color: var(--sf-text-primary);
-  border-color: var(--sf-glass-border);
-}
-
-.verdictBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(147, 51, 234, 0.12);
-  border: 1px solid rgba(147, 51, 234, 0.3);
-  color: #9333EA;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: var(--sf-radius-full);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.verdictBtn:hover {
-  background: #9333EA;
-  color: #FFFFFF;
-}
-
-.fittingBadge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--sf-radius-full);
-}
-
-.fittingBadgePending {
-  background: rgba(147, 51, 234, 0.12);
-  color: #9333EA;
-  border: 1px solid rgba(147, 51, 234, 0.25);
-}
-
-.fittingBadgeDone {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  .craftFilterBtn {
+    padding: 6px 12px;
+    font-size: 12.5px;
+  }
 }
 
 /* =========================================================================
