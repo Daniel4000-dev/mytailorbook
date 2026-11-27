@@ -31,7 +31,18 @@ async function captureReceiptPng(): Promise<Blob> {
   root.setAttribute('data-theme', 'light');
   try {
     const { toBlob } = await import('html-to-image');
-    const blob = await toBlob(node, { pixelRatio: 2, backgroundColor: '#ffffff' });
+    const blob = await toBlob(node, {
+      pixelRatio: 2.5,
+      backgroundColor: '#ffffff',
+      width: 420,
+      style: {
+        width: '420px',
+        maxWidth: '420px',
+        margin: '0',
+        boxSizing: 'border-box',
+        boxShadow: 'none',
+      },
+    });
     if (!blob) throw new Error('Could not render receipt');
     return blob;
   } finally {

@@ -1453,66 +1453,74 @@
   line-height: 1.45;
 }
 
+/* ── OPay-Inspired Full-Width Bespoke Receipt ── */
 .receiptSummaryCard {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   margin: 0 auto 20px auto;
-  background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+  background: #FFFFFF !important;
+  color: #0F172A !important;
   border-radius: 18px;
-  padding: clamp(14px, 4vw, 20px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
 }
 
 :global([data-theme='dark']) .receiptSummaryCard {
-  background: var(--sf-bg-surface-secondary, #1C1C1E);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background: #FFFFFF !important;
+  color: #0F172A !important;
 }
 
-.receiptRow {
+/* Scalloped Perforations */
+.receiptPerforationTop,
+.receiptPerforationBottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13.5px;
-  gap: 8px;
+  height: 12px;
+  padding: 0 4px;
+  background: #FFFFFF;
+  overflow: hidden;
+  user-select: none;
 }
 
-.receiptMuted {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--sf-text-secondary);
+.perforationHoleTop {
+  width: 10px;
+  height: 10px;
+  background: #0F172A;
+  border-radius: 50%;
+  margin-top: -6px;
   flex-shrink: 0;
 }
 
-.receiptBold {
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  text-align: right;
-  word-break: break-word;
+.perforationHoleBottom {
+  width: 10px;
+  height: 10px;
+  background: #0F172A;
+  border-radius: 50%;
+  margin-bottom: -6px;
+  flex-shrink: 0;
 }
 
-.receiptHighlight {
-  font-size: 16px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: #059669;
+.receiptCardBody {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
 }
 
-.receiptBrandRow {
+/* Header Row */
+.receiptHeaderRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  text-align: left;
-  padding-bottom: 4px;
   gap: 12px;
 }
 
-.receiptBrandInfo {
+.receiptShopBrandWrap {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1521,16 +1529,16 @@
 }
 
 .receiptShopLogo {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
-  background: #fff;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
   flex-shrink: 0;
 }
 
-.receiptBrandText {
+.receiptShopBrandMeta {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1539,22 +1547,24 @@
 
 .receiptShopName {
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--sf-text-primary);
-  letter-spacing: -0.01em;
+  color: #0F172A;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.receiptShopPhone {
+.receiptShopSub {
   font-size: 11px;
   font-weight: 500;
-  color: var(--sf-text-secondary);
+  color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.receiptRefBadge {
+.receiptMetaCol {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -1562,96 +1572,209 @@
   flex-shrink: 0;
 }
 
-.receiptRefLabel {
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--sf-text-secondary);
-}
-
-.receiptRefId {
-  font-family: var(--font-mono, monospace);
+.receiptMetaTitle {
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--sf-text-primary);
-  background: var(--sf-bg-surface-secondary, rgba(0, 0, 0, 0.05));
-  padding: 2px 7px;
-  border-radius: 6px;
+  color: #334155;
   letter-spacing: 0.02em;
 }
 
+.receiptMetaRef {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Centered Hero Amount Section */
+.receiptHeroAmountSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px 0 2px 0;
+}
+
+.receiptHeroAmount {
+  font-size: 34px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #00B875;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.receiptHeroStatus {
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.receiptHeroTimestamp {
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+/* Dashed divider */
 .receiptDividerDashed {
   width: 100%;
-  border-bottom: 1.5px dashed var(--sf-border-light, rgba(0, 0, 0, 0.12));
+  border-bottom: 1px dashed #CBD5E1;
   margin: 2px 0;
 }
 
-:global([data-theme='dark']) .receiptDividerDashed {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-}
-
-.receiptGarmentsList {
+/* Details Table (Key-Value) */
+.receiptDetailsTable {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 
-.receiptGarmentSubRow {
+.receiptDetailItem {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: var(--sf-text-primary);
-  gap: 8px;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 13.5px;
 }
 
-.receiptTrackingPreview {
-  margin-top: 4px;
-  padding: 8px 10px;
-  background: var(--sf-bg-surface-secondary, rgba(0, 0, 0, 0.03));
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.06));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-decoration: none;
-  gap: 8px;
-  transition: all 0.15s ease;
-}
-
-.receiptTrackingPreview:hover {
-  background: var(--sf-brand-indigo-glow, rgba(99, 102, 241, 0.08));
-  border-color: var(--sf-brand-indigo, #6366F1);
-}
-
-.receiptTrackingLeft {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--sf-brand-indigo, #6366F1);
-}
-
-.receiptTrackingHint {
-  font-size: 10.5px;
-  color: var(--sf-text-secondary);
-}
-
-.receiptCardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding-top: 4px;
-  font-size: 10.5px;
+.receiptDetailLabel {
   font-weight: 500;
-  color: var(--sf-text-secondary);
+  color: #64748B;
+  flex-shrink: 0;
 }
 
-.receiptFooterCheck {
-  color: #10B981;
+.receiptDetailValueWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 0;
+  gap: 2px;
+}
+
+.receiptDetailPrimary {
+  font-weight: 700;
+  color: #0F172A;
+  word-break: break-word;
+}
+
+.receiptDetailSecondary {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748B;
+  word-break: break-word;
+}
+
+.receiptDetailEmerald {
+  font-weight: 800;
+  color: #00B875;
+  font-variant-numeric: tabular-nums;
+}
+
+.receiptDetailDue {
+  font-weight: 800;
+  color: #DC2626;
+  font-variant-numeric: tabular-nums;
+}
+
+.receiptDetailMono {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.03em;
+}
+
+/* Dual-Branding Trust Endorsement Footer */
+.receiptTrustEndorsement {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.receiptEndorsementHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.receiptPlatformBrand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.receiptPlatformLogo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.receiptPlatformName {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #4F46E5;
+  letter-spacing: -0.01em;
+}
+
+.receiptVerifiedBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #059669;
+  background: #ECFDF5;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.receiptVerifiedCheck {
+  color: #059669;
+}
+
+.receiptTrustCopy {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: #64748B;
+}
+
+.receiptTrackingBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 10.5px;
+  color: #334155;
+}
+
+.receiptTrackingQrIcon {
+  color: #4F46E5;
+  flex-shrink: 0;
+}
+
+.receiptTrackingUrl {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: #4338CA;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .receiptActionsGroup {

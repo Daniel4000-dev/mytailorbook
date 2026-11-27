@@ -334,7 +334,7 @@
   font-size: 13px;
 }
 
-.atelierContact {
+.workshopContact {
   margin: var(--sf-space-xs) 0;
 }
 
@@ -367,6 +367,93 @@
   /* No opacity here — stacking it on top of an already-muted color was
      the biggest offender in light mode, fading this line to near-white. */
   color: var(--receipt-muted);
+}
+
+.dualBrandFooter {
+  margin-top: var(--sf-space-md);
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.dualBrandHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.dualBrandPlatform {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.platformName {
+  font-size: 12px;
+  font-weight: 800;
+  color: #4F46E5;
+  letter-spacing: -0.01em;
+}
+
+.verifiedBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #059669;
+  background: #ECFDF5;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.verifiedCheck {
+  color: #059669;
+}
+
+.dualBrandLegal {
+  margin: 0;
+  font-size: 9.5px;
+  line-height: 1.4;
+  color: #64748B;
+}
+
+/* Scalloped Perforations */
+.receiptPerforationTop,
+.receiptPerforationBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 12px;
+  padding: 0 4px;
+  background: #FFFFFF;
+  overflow: hidden;
+  user-select: none;
+}
+
+.perforationHoleTop {
+  width: 10px;
+  height: 10px;
+  background: #0F172A;
+  border-radius: 50%;
+  margin-top: -6px;
+  flex-shrink: 0;
+}
+
+.perforationHoleBottom {
+  width: 10px;
+  height: 10px;
+  background: #0F172A;
+  border-radius: 50%;
+  margin-bottom: -6px;
+  flex-shrink: 0;
 }
 
 /* Perforated bottom edge — the classic torn-receipt-stub look, drawn as a

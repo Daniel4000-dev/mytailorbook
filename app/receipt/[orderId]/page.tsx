@@ -8,6 +8,7 @@ import { STATUS_CONFIG } from '@/lib/constants';
 import { formatCurrency, formatPhone, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
+import { getWorkshopCrestDataUrl } from '@/lib/receipt';
 import ReceiptActions from './_components/ReceiptActions';
 import styles from './page.module.css';
 
@@ -62,10 +63,23 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
       </div>
 
       <div className={styles.card} id="receipt-card">
+        {/* Top Scalloped Perforation */}
+        <div className={styles.receiptPerforationTop} aria-hidden="true">
+          {Array.from({ length: 22 }).map((_, i) => (
+            <span key={i} className={styles.perforationHoleTop} />
+          ))}
+        </div>
+
         <div className={styles.cardInner}>
           <header className={styles.header}>
             <div className={styles.brandRow}>
-              {shop?.logoUrl && <Image src={shop.logoUrl} alt="" width={200} height={200} className={styles.brandLogo} />}
+              <img
+                src={shop?.logoUrl || getWorkshopCrestDataUrl(shop?.name)}
+                alt=""
+                width={44}
+                height={44}
+                className={styles.brandLogo}
+              />
               <div>
                 <h1 className={styles.brand}>{shop?.name || APP_CONFIG.name}</h1>
                 {shop?.phone && <span className={styles.brandSub}>{formatPhone(shop.phone)}</span>}
@@ -166,7 +180,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
           <footer className={styles.footer}>
             <p>Thank you for choosing {shop?.name || APP_CONFIG.name}.</p>
             {shop?.phone && (
-              <p className={styles.atelierContact}>
+              <p className={styles.workshopContact}>
                 <a
                   href={getWhatsAppLink(
                     shop.phone,
@@ -180,10 +194,36 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
                 </a>
               </p>
             )}
-            <p className={styles.poweredBy}>Powered by {APP_CONFIG.name}</p>
+
+            <div className={styles.dualBrandFooter}>
+              <div className={styles.dualBrandHeader}>
+                <div className={styles.dualBrandPlatform}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="24" height="24" rx="6" fill="#4F46E5" />
+                    <path d="M6 7H11V17H6V7Z" fill="#FFFFFF" fillOpacity="0.9" />
+                    <path d="M13 7H18V17H13V7Z" fill="#FFFFFF" fillOpacity="0.9" />
+                    <circle cx="12" cy="12" r="2.2" fill="#10B981" />
+                  </svg>
+                  <span className={styles.platformName}>MyTailorBook</span>
+                </div>
+                <div className={styles.verifiedBadge}>
+                  <Symbol name="verified" size={12} className={styles.verifiedCheck} />
+                  <span>Verified Bespoke Receipt</span>
+                </div>
+              </div>
+              <p className={styles.dualBrandLegal}>
+                Issued by {shop?.name || 'the workshop'} via MyTailorBook. Official record of bespoke garment specifications and verified payments.
+              </p>
+            </div>
           </footer>
         </div>
-        <div className={styles.perforatedEdge} />
+
+        {/* Bottom Scalloped Perforation */}
+        <div className={styles.receiptPerforationBottom} aria-hidden="true">
+          {Array.from({ length: 22 }).map((_, i) => (
+            <span key={i} className={styles.perforationHoleBottom} />
+          ))}
+        </div>
       </div>
     </div>
   );

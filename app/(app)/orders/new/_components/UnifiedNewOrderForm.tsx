@@ -16,6 +16,7 @@ import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import { validatePhoneNumber } from '@/lib/phoneValidation';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
+import { getWorkshopCrestDataUrl, loadShopLogoAsDataUrl, formatReceiptTimestamp } from '@/lib/receipt';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -729,6 +730,23 @@ export default function UnifiedNewOrderForm() {
   const [receiptSheetOpen, setReceiptSheetOpen] = useState(false);
   const [cuttingSlipOpen, setCuttingSlipOpen] = useState(false);
   const [sharingReceiptImage, setSharingReceiptImage] = useState(false);
+  const [resolvedShopLogo, setResolvedShopLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!currentShop?.logoUrl) {
+      setResolvedShopLogo(getWorkshopCrestDataUrl(currentShop?.name));
+      return;
+    }
+    loadShopLogoAsDataUrl(currentShop.logoUrl).then((dataUrl) => {
+      if (active) {
+        setResolvedShopLogo(dataUrl || getWorkshopCrestDataUrl(currentShop?.name));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [currentShop?.logoUrl, currentShop?.name]);
 
   const handleShareReceiptImage = async () => {
     const node = document.getElementById('order-created-receipt-card');
@@ -743,21 +761,27 @@ export default function UnifiedNewOrderForm() {
     try {
       const { toBlob } = await import('html-to-image');
       const blob = await toBlob(node, {
-        pixelRatio: 2,
+        pixelRatio: 2.5,
         backgroundColor: '#ffffff',
-        width: 380,
+        width: 420,
+        style: {
+          width: '420px',
+          maxWidth: '420px',
+          margin: '0',
+          boxSizing: 'border-box',
+          boxShadow: 'none',
+        },
       });
       if (!blob) throw new Error('Could not render receipt image');
 
-      const refId = completedBatch?.firstOrderId ? completedBatch.firstOrderId.slice(-6).toUpperCase() : 'ORDER';
+      const refId = completedBatch?.firstOrderId ? completedBatch.firstOrderId.slice(-8).toUpperCase() : 'ORDER';
       const fileName = `receipt-${refId}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
 
       if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
         try {
+          // Zero write-up: just the plain receipt image containing all order and workshop details
           await navigator.share({
-            title: `Order Receipt #${refId}`,
-            text: `Official order receipt for ${selectedCustomer?.fullName || 'Client'} from ${currentShop?.name || APP_CONFIG.name}.`,
             files: [file],
           });
           showToast('Receipt image shared!', 'success');
@@ -774,7 +798,7 @@ export default function UnifiedNewOrderForm() {
       a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Receipt image downloaded! You can attach it to WhatsApp.', 'success');
+      showToast('Receipt image downloaded!', 'success');
     } catch {
       showToast('Failed to create receipt image', 'error');
     } finally {
@@ -2197,105 +2221,183 @@ export default function UnifiedNewOrderForm() {
             </p>
 
             <div className={styles.receiptSummaryCard} id="order-created-receipt-card">
-              <div className={styles.receiptBrandRow}>
-                <div className={styles.receiptBrandInfo}>
-                  {currentShop?.logoUrl && (
+              {/* Top Scalloped Perforation */}
+              <div className={styles.receiptPerforationTop} aria-hidden="true">
+                {Array.from({ length: 22 }).map((_, i) => (
+                  <span key={i} className={styles.perforationHoleTop} />
+                ))}
+              </div>
+
+              <div className={styles.receiptCardBody}>
+                {/* Header: Workshop Brand (Left) and Receipt Ref (Right) */}
+                <div className={styles.receiptHeaderRow}>
+                  <div className={styles.receiptShopBrandWrap}>
                     <img
-                      src={currentShop.logoUrl}
-                      alt={currentShop?.name || 'Studio Logo'}
+                      src={resolvedShopLogo || getWorkshopCrestDataUrl(currentShop?.name)}
+                      alt={currentShop?.name || 'Workshop Logo'}
                       className={styles.receiptShopLogo}
-                      crossOrigin="anonymous"
+                      onError={(e) => {
+                        e.currentTarget.src = getWorkshopCrestDataUrl(currentShop?.name);
+                      }}
                     />
-                  )}
-                  <div className={styles.receiptBrandText}>
-                    <span className={styles.receiptShopName}>{currentShop?.name || APP_CONFIG.name}</span>
-                    {currentShop?.phone && (
-                      <span className={styles.receiptShopPhone}>{formatPhone(currentShop.phone)}</span>
-                    )}
+                    <div className={styles.receiptShopBrandMeta}>
+                      <span className={styles.receiptShopName}>{currentShop?.name || APP_CONFIG.name}</span>
+                      <span className={styles.receiptShopSub}>
+                        {currentShop?.phone ? formatPhone(currentShop.phone) : 'Bespoke Tailoring Workshop'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.receiptMetaCol}>
+                    <span className={styles.receiptMetaTitle}>Order Receipt</span>
+                    <span className={styles.receiptMetaRef}>#{completedBatch.firstOrderId.slice(-8).toUpperCase()}</span>
                   </div>
                 </div>
-                <div className={styles.receiptRefBadge}>
-                  <span className={styles.receiptRefLabel}>Receipt</span>
-                  <span className={styles.receiptRefId}>#{completedBatch.firstOrderId.slice(-6).toUpperCase()}</span>
+
+                {/* Big Centered Hero Amount Section (OPay style) */}
+                <div className={styles.receiptHeroAmountSection}>
+                  <span className={styles.receiptHeroAmount}>
+                    {currencySymbol}{formatNumber(completedBatch.depositPaid > 0 ? completedBatch.depositPaid : completedBatch.totalBill)}
+                  </span>
+                  <span className={styles.receiptHeroStatus}>
+                    {completedBatch.balanceDue <= 0
+                      ? 'Payment Successful'
+                      : completedBatch.depositPaid > 0
+                      ? 'Deposit Confirmed'
+                      : 'Order Confirmed'}
+                  </span>
+                  <span className={styles.receiptHeroTimestamp}>
+                    {formatReceiptTimestamp()}
+                  </span>
                 </div>
-              </div>
 
-              <div className={styles.receiptDividerDashed} />
+                <div className={styles.receiptDividerDashed} />
 
-              <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Customer</span>
-                <span className={styles.receiptBold}>{selectedCustomer.fullName}</span>
-              </div>
-              {selectedCustomer.whatsappNumber && (
-                <div className={styles.receiptRow}>
-                  <span className={styles.receiptMuted}>Phone</span>
-                  <span className={styles.receiptBold}>{formatPhone(selectedCustomer.whatsappNumber)}</span>
-                </div>
-              )}
-
-              <div className={styles.receiptDividerDashed} />
-
-              {completedBatch.garments.length > 1 ? (
-                <div className={styles.receiptGarmentsList}>
-                  <span className={styles.receiptMuted}>Outfits:</span>
-                  {completedBatch.garments.map((g, i) => (
-                    <div key={i} className={styles.receiptGarmentSubRow}>
-                      <span>{i + 1}. {g.styleName}</span>
-                      <span className={styles.receiptBold}>{currencySymbol}{formatNumber(g.price)}</span>
+                {/* Full-Width Key-Value Table (OPay style) */}
+                <div className={styles.receiptDetailsTable}>
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Customer Details</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailPrimary}>{selectedCustomer.fullName}</span>
+                      {selectedCustomer.whatsappNumber && (
+                        <span className={styles.receiptDetailSecondary}>
+                          WhatsApp | {formatPhone(selectedCustomer.whatsappNumber)}
+                        </span>
+                      )}
                     </div>
-                  ))}
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Workshop Details</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailPrimary}>{currentShop?.name || APP_CONFIG.name}</span>
+                      <span className={styles.receiptDetailSecondary}>
+                        {currentShop?.phone ? formatPhone(currentShop.phone) : 'Tailoring Workshop'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Garment / Style</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailPrimary}>
+                        {completedBatch.garments.length > 1
+                          ? `${completedBatch.garments.length} Bespoke Outfits`
+                          : completedBatch.garments[0]?.styleName}
+                      </span>
+                      <span className={styles.receiptDetailSecondary}>
+                        {completedBatch.garments.length > 1
+                          ? completedBatch.garments.map((g) => g.styleName).join(' · ')
+                          : 'Bespoke Custom Tailoring'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Total Bill</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailPrimary}>
+                        {currencySymbol}{formatNumber(completedBatch.totalBill)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Deposit Paid</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailEmerald}>
+                        {currencySymbol}{formatNumber(completedBatch.depositPaid)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Balance Due</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={completedBatch.balanceDue <= 0 ? styles.receiptDetailEmerald : styles.receiptDetailDue}>
+                        {completedBatch.balanceDue <= 0
+                          ? '₦0.00 · Settled'
+                          : `${currencySymbol}${formatNumber(completedBatch.balanceDue)}`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Estimated Delivery</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailPrimary}>
+                        {formatSafeDate(completedBatch.dueDate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.receiptDetailItem}>
+                    <span className={styles.receiptDetailLabel}>Order Reference</span>
+                    <div className={styles.receiptDetailValueWrap}>
+                      <span className={styles.receiptDetailMono}>
+                        MTB-{completedBatch.firstOrderId.slice(-8).toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className={styles.receiptRow}>
-                  <span className={styles.receiptMuted}>Garment</span>
-                  <span className={styles.receiptBold}>{completedBatch.garments[0]?.styleName}</span>
+
+                <div className={styles.receiptDividerDashed} />
+
+                {/* Dual Branding & Trust Endorsement (OPay-inspired trust footer) */}
+                <div className={styles.receiptTrustEndorsement}>
+                  <div className={styles.receiptEndorsementHeader}>
+                    <div className={styles.receiptPlatformBrand}>
+                      <svg className={styles.receiptPlatformLogo} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="6" fill="#4F46E5" />
+                        <path d="M6 7H11V17H6V7Z" fill="#FFFFFF" fillOpacity="0.9" />
+                        <path d="M13 7H18V17H13V7Z" fill="#FFFFFF" fillOpacity="0.9" />
+                        <circle cx="12" cy="12" r="2.2" fill="#10B981" />
+                      </svg>
+                      <span className={styles.receiptPlatformName}>MyTailorBook</span>
+                    </div>
+                    <div className={styles.receiptVerifiedBadge}>
+                      <Symbol name="verified" size={13} className={styles.receiptVerifiedCheck} />
+                      <span>Verified Bespoke Receipt</span>
+                    </div>
+                  </div>
+
+                  <p className={styles.receiptTrustCopy}>
+                    Official bespoke order & payment receipt issued by {currentShop?.name || 'the workshop'} via MyTailorBook. Recorded with digital stitch specifications and verified payment history.
+                  </p>
+
+                  <div className={styles.receiptTrackingBar}>
+                    <Symbol name="qr_code_2" size={14} className={styles.receiptTrackingQrIcon} />
+                    <span className={styles.receiptTrackingUrl}>
+                      Live tracking: mytailorbook.com/track/{completedBatch.firstOrderId.slice(-8).toUpperCase()}
+                    </span>
+                  </div>
                 </div>
-              )}
-
-              <div className={styles.receiptDividerDashed} />
-
-              <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Total Bill</span>
-                <span className={styles.receiptBold}>
-                  {currencySymbol}{formatNumber(completedBatch.totalBill)}
-                </span>
-              </div>
-              <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Deposit Paid</span>
-                <span className={styles.receiptBold}>
-                  {currencySymbol}{formatNumber(completedBatch.depositPaid)}
-                </span>
-              </div>
-              <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Balance Due</span>
-                <span className={styles.receiptHighlight}>
-                  {currencySymbol}{formatNumber(completedBatch.balanceDue)}
-                </span>
-              </div>
-              <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Ready By</span>
-                <span className={styles.receiptBold}>
-                  {formatSafeDate(completedBatch.dueDate)}
-                </span>
               </div>
 
-              {/* Seamless digital tracking preview link directly on the receipt card */}
-              <a
-                href={ROUTES.receipt(completedBatch.firstOrderId)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.receiptTrackingPreview}
-              >
-                <div className={styles.receiptTrackingLeft}>
-                  <Symbol name="qr_code_2" size={16} />
-                  <span>View Online Receipt</span>
-                </div>
-                <span className={styles.receiptTrackingHint}>Live tracking & details →</span>
-              </a>
-
-              <div className={styles.receiptCardFooter}>
-                <Symbol name="verified" size={13} className={styles.receiptFooterCheck} />
-                <span>Verified by {APP_CONFIG.name} · Digital Tracking Enabled</span>
+              {/* Bottom Scalloped Perforation */}
+              <div className={styles.receiptPerforationBottom} aria-hidden="true">
+                {Array.from({ length: 22 }).map((_, i) => (
+                  <span key={i} className={styles.perforationHoleBottom} />
+                ))}
               </div>
             </div>
 
