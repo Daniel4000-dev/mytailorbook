@@ -332,28 +332,37 @@
   color: #FFFFFF;
 }
 
-.callClientChip {
+.callClientBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  background: var(--sf-glass-bg);
-  border: var(--sf-glass-border-subtle);
-  color: var(--sf-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 7px 12px;
+  gap: 6px;
+  background: var(--sf-surface-subtle, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--sf-border-medium, rgba(0, 0, 0, 0.15));
+  color: var(--sf-text-primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 14px;
   min-height: 38px;
   border-radius: var(--sf-radius-full);
   text-decoration: none;
   white-space: nowrap;
   transition: all 0.15s ease;
   box-sizing: border-box;
+  cursor: pointer;
 }
 
-.callClientChip:hover {
+:global([data-theme='dark']) .callClientBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
   color: var(--sf-text-primary);
-  border-color: var(--sf-glass-border);
+}
+
+.callClientBtn:hover {
+  background: var(--sf-surface-hover, rgba(0, 0, 0, 0.08));
+  border-color: var(--sf-border-bold, rgba(0, 0, 0, 0.3));
+  color: var(--sf-text-primary);
+  transform: translateY(-1px);
 }
 
 /* ── Mobile Responsive Adjustments ── */
@@ -379,13 +388,8 @@
     min-height: 40px;
   }
 
-  .whatsAppReminderBtn {
-    flex: 1 1 auto;
-    min-height: 38px;
-    white-space: nowrap;
-  }
-
-  .callClientChip {
+  .whatsAppReminderBtn,
+  .callClientBtn {
     flex: 1 1 auto;
     min-height: 38px;
     white-space: nowrap;

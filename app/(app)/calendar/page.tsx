@@ -24,7 +24,8 @@ type CalendarViewMode = 'grid' | 'agenda';
 type CraftFilter = 'all' | 'fitting' | 'dispatch' | 'tasks';
 
 function CalendarContent() {
-  const { user } = useAuth();
+  const { user, isOwner, isStaff } = useAuth();
+  const canContactClient = isOwner || !isStaff;
   const { orders, customers, currentShop, isLoaded, isDemoMode, updateOrder } = useData();
   const { showToast } = useToast();
   const searchParams = useSearchParams();
@@ -566,6 +567,7 @@ function CalendarContent() {
                         key={evt.id}
                         event={evt}
                         customer={customer}
+                        canContactClient={canContactClient}
                         onToggleStatus={handleToggleEventStatus}
                         onOpenVerdict={setVerdictEvent}
                         onWhatsAppReminder={handleWhatsAppFittingReminder}
@@ -605,6 +607,7 @@ function CalendarContent() {
                           key={evt.id}
                           event={evt}
                           customer={customer}
+                          canContactClient={canContactClient}
                           onToggleStatus={handleToggleEventStatus}
                           onOpenVerdict={setVerdictEvent}
                           onWhatsAppReminder={handleWhatsAppFittingReminder}

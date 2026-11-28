@@ -84,10 +84,71 @@ describe('AgendaCard Component Mount & Integration Tests', () => {
     expect(onWhatsAppReminderMock).toHaveBeenCalledTimes(1);
     expect(onWhatsAppReminderMock).toHaveBeenCalledWith(richEvent);
 
+    // High-affordance Call Client CTA (no exposed raw digits)
+    const callBtn = screen.getByTitle('Call client');
+    expect(screen.getByText('Call Client')).toBeDefined();
+    expect(callBtn.getAttribute('href')).toBe('tel:+2348031234567');
+
     const checkBtn = screen.getByTitle('Mark completed');
     fireEvent.click(checkBtn);
     expect(onToggleStatusMock).toHaveBeenCalledTimes(1);
     expect(onToggleStatusMock).toHaveBeenCalledWith(richEvent);
+  });
+
+  /* -------------------------------------------------------------------------
+     1b. Deduplication & Staff Privacy Gating
+     ------------------------------------------------------------------------- */
+  it('deduplicates repetitive client names and suppresses contact CTAs for workshop staff', () => {
+    const fittingEventWithDuplicateName: CalendarEvent = {
+      id: 'evt-fit-102',
+      shopId: 'shop-test-1',
+      title: 'Fitting: Chief Emeka Okafor (Senator Ensemble)',
+      description: 'Check neckline band.',
+      type: 'fitting',
+      status: 'pending',
+      date: '2026-11-28',
+      startTime: '14:00',
+      endTime: '15:00',
+      relatedCustomerId: 'cust-1',
+      relatedOrderId: 'ord-102',
+      createdAt: '2026-11-20T08:00:00Z',
+    };
+
+    const customer: Customer = {
+      id: 'cust-1',
+      shopId: 'shop-test-1',
+      fullName: 'Chief Emeka Okafor',
+      whatsappNumber: '+2348031234567',
+      gender: 'male',
+      createdAt: '2026-01-01',
+    };
+
+    // Mount as workshop staff (canContactClient = false)
+    render(
+      <AgendaCard
+        event={fittingEventWithDuplicateName}
+        customer={customer}
+        canContactClient={false}
+        onToggleStatus={onToggleStatusMock}
+        onOpenVerdict={onOpenVerdictMock}
+        onWhatsAppReminder={onWhatsAppReminderMock}
+      />
+    );
+
+    // Headline is cleaned to garment scope: "Senator Ensemble Fitting"
+    expect(screen.getByText('Senator Ensemble Fitting')).toBeDefined();
+    // Subhead displays client name cleanly once
+    expect(screen.getByText('Chief Emeka Okafor')).toBeDefined();
+
+    // Staff role privacy: Contact actions MUST NOT be rendered
+    expect(screen.queryByText('Call Client')).toBeNull();
+    expect(screen.queryByText('WhatsApp Reminder')).toBeNull();
+    expect(screen.queryByTitle('Call client')).toBeNull();
+    expect(screen.queryByTitle('Send WhatsApp appointment reminder to client')).toBeNull();
+
+    // Operational craft controls (verdict, status toggle) remain accessible to staff
+    expect(screen.getByTitle('Record fitting session outcome')).toBeDefined();
+    expect(screen.getByTitle('Mark completed')).toBeDefined();
   });
 
   /* -------------------------------------------------------------------------

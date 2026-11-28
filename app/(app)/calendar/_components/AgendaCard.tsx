@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
-import { formatPhone, getTelLink } from '@/lib/formatters';
+import { getTelLink } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import type { CalendarEvent, Customer } from '@/lib/types';
 import styles from './AgendaCard.module.css';
@@ -12,14 +12,80 @@ import styles from './AgendaCard.module.css';
 export interface AgendaCardProps {
   event: CalendarEvent;
   customer?: Customer | null;
+  /** When false (e.g. workshop floor staff), customer call/WhatsApp actions are suppressed for privacy */
+  canContactClient?: boolean;
   onToggleStatus: (evt: CalendarEvent) => void;
   onOpenVerdict: (evt: CalendarEvent) => void;
   onWhatsAppReminder: (evt: CalendarEvent) => void;
 }
 
+/**
+ * Intelligent de-duplication: Ensures customer name isn't repetitively printed
+ * both in the headline and subhead when auto-generated titles include client names.
+ */
+function getDeduplicatedTitleAndClient(eventTitle: string, customerName?: string | null) {
+  if (!customerName) {
+    return { title: eventTitle, showCustomerSub: false };
+  }
+
+  const trimmedCust = customerName.trim();
+  const lowerCust = trimmedCust.toLowerCase();
+  const trimmedTitle = eventTitle.trim();
+  const lowerTitle = trimmedTitle.toLowerCase();
+
+  // Pattern 1: "Fitting: <Customer> (<Outfit>)" -> Headline: "<Outfit> Fitting", Subhead: "<Customer>"
+  const fittingOutfitMatch = trimmedTitle.match(/^Fitting:\s*.+?\s*\((.+?)\)$/i);
+  if (fittingOutfitMatch && lowerTitle.includes(lowerCust)) {
+    return {
+      title: `${fittingOutfitMatch[1]} Fitting`,
+      showCustomerSub: true,
+    };
+  }
+
+  // Pattern 2: "<Customer> Delivery" -> Headline: "Garment Delivery", Subhead: "<Customer>"
+  if (lowerTitle === `${lowerCust} delivery` || lowerTitle === `${lowerCust}'s delivery`) {
+    return {
+      title: 'Garment Delivery',
+      showCustomerSub: true,
+    };
+  }
+
+  // Pattern 3: Title exactly matches customer name
+  if (lowerTitle === lowerCust) {
+    return {
+      title: trimmedTitle,
+      showCustomerSub: false,
+    };
+  }
+
+  // Pattern 4: Title starts with "Fitting: <Customer>"
+  if (lowerTitle.startsWith(`fitting: ${lowerCust}`)) {
+    const remainder = trimmedTitle.slice(`fitting: ${lowerCust}`.length).trim();
+    return {
+      title: remainder ? `Fitting ${remainder}` : 'Fitting Session',
+      showCustomerSub: true,
+    };
+  }
+
+  // Pattern 5: Title already prominently includes customer name -> keep title as-is, suppress redundant subheader
+  if (lowerTitle.includes(lowerCust)) {
+    return {
+      title: trimmedTitle,
+      showCustomerSub: false,
+    };
+  }
+
+  // Distinct title and customer name -> display both cleanly
+  return {
+    title: trimmedTitle,
+    showCustomerSub: true,
+  };
+}
+
 export default function AgendaCard({
   event,
   customer,
+  canContactClient = true,
   onToggleStatus,
   onOpenVerdict,
   onWhatsAppReminder,
@@ -31,6 +97,11 @@ export default function AgendaCard({
   const timeDisplay = event.startTime
     ? `${event.startTime}${event.endTime ? ` - ${event.endTime}` : ''}`
     : 'All day';
+
+  const { title: displayTitle, showCustomerSub } = getDeduplicatedTitleAndClient(
+    event.title,
+    customer?.fullName
+  );
 
   return (
     <article className={`${styles.card} ${isCompleted ? styles.cardCompleted : ''}`}>
@@ -88,10 +159,10 @@ export default function AgendaCard({
         </div>
       </div>
 
-      {/* ── Main Content: Title & Customer Name (No Distracting Avatar) ── */}
+      {/* ── Main Content: Title & Customer Name (Deduplicated) ── */}
       <div className={styles.contentBlock}>
-        <h4 className={styles.title}>{event.title}</h4>
-        {customer && (
+        <h4 className={styles.title}>{displayTitle}</h4>
+        {showCustomerSub && customer && (
           <p className={styles.customerSub}>
             <Symbol name="person" size={13} className={styles.customerIcon} />
             <span>{customer.fullName}</span>
@@ -136,8 +207,8 @@ export default function AgendaCard({
           </Link>
         )}
 
-        {/* Send WhatsApp Appointment Reminder */}
-        {isFitting && customer?.whatsappNumber && (
+        {/* Send WhatsApp Appointment Reminder — Gated to Owner/Manager */}
+        {canContactClient && isFitting && customer?.whatsappNumber && (
           <button
             type="button"
             className={styles.whatsAppReminderBtn}
@@ -149,15 +220,15 @@ export default function AgendaCard({
           </button>
         )}
 
-        {/* Call Client Phone Action */}
-        {customer?.whatsappNumber && (
+        {/* Call Client Phone Action — Gated to Owner/Manager, explicit CTA label */}
+        {canContactClient && customer?.whatsappNumber && (
           <a
             href={getTelLink(customer.whatsappNumber)}
-            className={styles.callClientChip}
+            className={styles.callClientBtn}
             title="Call client"
           >
-            <Symbol name="call" size={13} />
-            <span>{formatPhone(customer.whatsappNumber)}</span>
+            <Symbol name="call" size={14} />
+            <span>Call Client</span>
           </a>
         )}
       </div>
