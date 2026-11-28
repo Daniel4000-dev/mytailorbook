@@ -715,6 +715,12 @@ export default function UnifiedNewOrderForm() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const DRAFT_STORAGE_KEY = 'mtb_new_order_draft';
 
+  const [restoredDraftInfo, setRestoredDraftInfo] = useState<{
+    customerName: string;
+    garmentCount: number;
+    savedAt: number;
+  } | null>(null);
+
   const saveCurrentOrderDraft = () => {
     try {
       const draft = {
@@ -735,6 +741,54 @@ export default function UnifiedNewOrderForm() {
     } catch {}
   };
 
+  const handleDiscardDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {}
+    setSelectedCustomer(null);
+    setCustomerSearch('');
+    setShowInlineNewCustomer(false);
+    setNewCustomerName('');
+    setNewCustomerPhone('');
+    setNewCustomerGender('male');
+    setGarments([
+      {
+        id: `g-${Date.now()}`,
+        styleName: '',
+        isCustomStyle: false,
+        price: '',
+        measures: {},
+        measurementNotes: '',
+        isFitLoaded: false,
+        showTweakMeasurements: true,
+        fabricImage: null,
+        styleReferenceImage: null,
+        uploadingFabric: false,
+        uploadingStyleRef: false,
+        materialSuppliedBy: 'customer',
+        fabricNotes: '',
+      },
+    ]);
+    setDueDate(getDaysFromNow(14));
+    setDepositPaid('');
+    setManualTotalBill('');
+    setPriority('normal');
+    setRestoredDraftInfo(null);
+    setHasHitOrderLimit(false);
+    showToast('Draft discarded. Ready for a new order.', 'info');
+  };
+
+  const formatTimeAgo = (timestamp: number): string => {
+    const diffSec = Math.max(1, Math.floor((Date.now() - timestamp) / 1000));
+    if (diffSec < 60) return 'just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  };
+
   // Auto-restore draft if returning from an unexpected reload or checkout redirect
   useEffect(() => {
     try {
@@ -742,6 +796,24 @@ export default function UnifiedNewOrderForm() {
       if (!saved) return;
       const draft = JSON.parse(saved);
       if (!draft || Date.now() - draft.timestamp > 48 * 60 * 60 * 1000) return;
+
+      const hasMeaningfulContent = Boolean(
+        draft.selectedCustomer ||
+        (draft.newCustomerName && draft.newCustomerName.trim()) ||
+        (Array.isArray(draft.garments) &&
+          draft.garments.some(
+            (g: any) =>
+              g.styleName ||
+              g.price ||
+              Object.keys(g.measures || {}).length > 0 ||
+              g.fabricNotes ||
+              g.fabricImage
+          )) ||
+        draft.depositPaid ||
+        draft.manualTotalBill
+      );
+
+      if (!hasMeaningfulContent) return;
 
       if (draft.selectedCustomer) setSelectedCustomer(draft.selectedCustomer);
       if (draft.customerSearch) setCustomerSearch(draft.customerSearch);
@@ -754,8 +826,53 @@ export default function UnifiedNewOrderForm() {
       if (draft.newCustomerName) setNewCustomerName(draft.newCustomerName);
       if (draft.newCustomerPhone) setNewCustomerPhone(draft.newCustomerPhone);
       if (draft.newCustomerGender) setNewCustomerGender(draft.newCustomerGender);
+
+      setRestoredDraftInfo({
+        customerName: draft.selectedCustomer?.fullName || draft.newCustomerName?.trim() || 'Client Draft',
+        garmentCount: Array.isArray(draft.garments) && draft.garments.length > 0 ? draft.garments.length : 1,
+        savedAt: draft.timestamp || Date.now(),
+      });
     } catch {}
   }, []);
+
+  // Continuous debounced auto-save so user never loses intake progress on normal days
+  useEffect(() => {
+    const isDirty = Boolean(
+      selectedCustomer ||
+      newCustomerName.trim() ||
+      newCustomerPhone.trim() ||
+      garments.some(
+        (g) =>
+          g.styleName ||
+          g.price ||
+          Object.keys(g.measures).length > 0 ||
+          g.fabricNotes ||
+          g.fabricImage
+      ) ||
+      depositPaid ||
+      manualTotalBill
+    );
+
+    if (!isDirty) return;
+
+    const timer = setTimeout(() => {
+      saveCurrentOrderDraft();
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [
+    selectedCustomer,
+    customerSearch,
+    garments,
+    dueDate,
+    depositPaid,
+    manualTotalBill,
+    priority,
+    showInlineNewCustomer,
+    newCustomerName,
+    newCustomerPhone,
+    newCustomerGender,
+  ]);
 
   // Handle Paystack callback if user was redirected back to /orders/new
   useEffect(() => {
@@ -1155,6 +1272,7 @@ export default function UnifiedNewOrderForm() {
       try {
         localStorage.removeItem(DRAFT_STORAGE_KEY);
       } catch {}
+      setRestoredDraftInfo(null);
     } catch (err: any) {
       const errMsg = err?.message || 'Failed to create order';
       if (
@@ -1264,6 +1382,48 @@ export default function UnifiedNewOrderForm() {
       }
     >
       <div className={styles.container}>
+        {/* Draft Restored Banner */}
+        {restoredDraftInfo && (
+          <div className={styles.draftRestoredBanner} role="status" aria-live="polite">
+            <div className={styles.draftBannerLeft}>
+              <div className={styles.draftBannerIconBadge}>
+                <Symbol name="restore" size={16} />
+              </div>
+              <div className={styles.draftBannerText}>
+                <span className={styles.draftBannerTitle}>
+                  Resumed draft: <strong>{restoredDraftInfo.customerName}</strong>
+                </span>
+                <span className={styles.draftBannerMeta}>
+                  {restoredDraftInfo.garmentCount > 1
+                    ? `${restoredDraftInfo.garmentCount} outfits`
+                    : '1 outfit'}{' '}
+                  • Saved {formatTimeAgo(restoredDraftInfo.savedAt)}
+                </span>
+              </div>
+            </div>
+            <div className={styles.draftBannerActions}>
+              <button
+                type="button"
+                className={styles.discardDraftBtn}
+                onClick={handleDiscardDraft}
+                title="Discard this draft and start a fresh order"
+              >
+                <Symbol name="delete" size={14} />
+                <span>Start Fresh</span>
+              </button>
+              <button
+                type="button"
+                className={styles.dismissDraftBannerBtn}
+                onClick={() => setRestoredDraftInfo(null)}
+                aria-label="Dismiss draft notice"
+                title="Keep working"
+              >
+                <Symbol name="close" size={15} />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── CARD 1: CUSTOMER SELECTION ── */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>

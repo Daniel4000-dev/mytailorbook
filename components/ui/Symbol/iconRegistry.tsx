@@ -469,6 +469,15 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  /** Restore / Resume Draft (Alias of history) */
+  restore: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" fill={fill ? color : 'none'} />
+      <polyline points="3 3 3 8 8 8" />
+      <polyline points="12 7 12 12 15 15" strokeWidth="2" />
+    </svg>
+  ),
+
   /** Pocket Countdown Timer */
   schedule: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

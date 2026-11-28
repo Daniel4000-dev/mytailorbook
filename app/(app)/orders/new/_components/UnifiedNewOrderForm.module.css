@@ -19,6 +19,144 @@
   }
 }
 
+/* ── Draft Restored Banner ── */
+.draftRestoredBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(147, 51, 234, 0.07) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  animation: fadeIn 0.2s ease-out;
+}
+
+:global([data-theme='dark']) .draftRestoredBanner {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.16) 0%, rgba(147, 51, 234, 0.14) 100%);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.draftBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.draftBannerIconBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4F46E5;
+  flex-shrink: 0;
+}
+
+:global([data-theme='dark']) .draftBannerIconBadge {
+  background: rgba(99, 102, 241, 0.25);
+  color: #A5B4FC;
+}
+
+.draftBannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.draftBannerTitle {
+  font-size: 13px;
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.draftBannerTitle strong {
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.draftBannerMeta {
+  font-size: 11.5px;
+  color: var(--sf-text-tertiary);
+}
+
+.draftBannerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.discardDraftBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  color: #DC2626;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+:global([data-theme='dark']) .discardDraftBtn {
+  color: #F87171;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.discardDraftBtn:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.dismissDraftBannerBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: transparent;
+  color: var(--sf-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dismissDraftBannerBtn:hover {
+  color: var(--sf-text-primary);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='dark']) .dismissDraftBannerBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 540px) {
+  .draftRestoredBanner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .draftBannerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 /* ── Card Styles (Sculpted Workshop Planes) ── */
 .card {
   position: relative;
