@@ -17,6 +17,8 @@ import { APP_CONFIG } from '@/lib/config';
 import { validatePhoneNumber } from '@/lib/phoneValidation';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
 import { getWorkshopCrestDataUrl, loadShopLogoAsDataUrl, formatReceiptTimestamp } from '@/lib/receipt';
+import { confirmSubscriptionPayment, confirmFreeTrial } from '@/app/actions/payments';
+import UpgradeModal from '@/components/settings/UpgradeModal/UpgradeModal';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -81,6 +83,7 @@ export default function UnifiedNewOrderForm() {
     updateCustomerMeasurements,
     updateCustomerProfile,
     isLoaded,
+    refreshShop,
   } = useData();
   const { showToast } = useToast();
 
@@ -709,6 +712,89 @@ export default function UnifiedNewOrderForm() {
   // ── 5. Creation & WhatsApp Receipt ──
   const [submitting, setSubmitting] = useState(false);
   const [hasHitOrderLimit, setHasHitOrderLimit] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const DRAFT_STORAGE_KEY = 'mtb_new_order_draft';
+
+  const saveCurrentOrderDraft = () => {
+    try {
+      const draft = {
+        selectedCustomer,
+        customerSearch,
+        garments,
+        dueDate,
+        depositPaid,
+        manualTotalBill,
+        priority,
+        showInlineNewCustomer,
+        newCustomerName,
+        newCustomerPhone,
+        newCustomerGender,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {}
+  };
+
+  // Auto-restore draft if returning from an unexpected reload or checkout redirect
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      const draft = JSON.parse(saved);
+      if (!draft || Date.now() - draft.timestamp > 48 * 60 * 60 * 1000) return;
+
+      if (draft.selectedCustomer) setSelectedCustomer(draft.selectedCustomer);
+      if (draft.customerSearch) setCustomerSearch(draft.customerSearch);
+      if (Array.isArray(draft.garments) && draft.garments.length > 0) setGarments(draft.garments);
+      if (draft.dueDate) setDueDate(draft.dueDate);
+      if (draft.depositPaid) setDepositPaid(draft.depositPaid);
+      if (draft.manualTotalBill) setManualTotalBill(draft.manualTotalBill);
+      if (draft.priority) setPriority(draft.priority);
+      if (draft.showInlineNewCustomer) setShowInlineNewCustomer(draft.showInlineNewCustomer);
+      if (draft.newCustomerName) setNewCustomerName(draft.newCustomerName);
+      if (draft.newCustomerPhone) setNewCustomerPhone(draft.newCustomerPhone);
+      if (draft.newCustomerGender) setNewCustomerGender(draft.newCustomerGender);
+    } catch {}
+  }, []);
+
+  // Handle Paystack callback if user was redirected back to /orders/new
+  useEffect(() => {
+    const isPaymentSuccess = searchParams.get('payment') === 'success';
+    const isTrialSuccess = searchParams.get('trial') === 'success';
+    if (!isPaymentSuccess && !isTrialSuccess) return;
+
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
+    if (!reference) return;
+
+    const confirmKey = `confirmed-order-${reference}`;
+    if (sessionStorage.getItem(confirmKey)) return;
+    sessionStorage.setItem(confirmKey, '1');
+
+    router.replace(ROUTES.orderNew);
+
+    if (isPaymentSuccess) {
+      confirmSubscriptionPayment(reference)
+        .then(() => {
+          showToast('Plan upgraded to Premium! Your order draft is restored.', 'success');
+          setHasHitOrderLimit(false);
+          refreshShop?.();
+        })
+        .catch(() => {
+          refreshShop?.();
+        });
+    } else if (isTrialSuccess) {
+      confirmFreeTrial(reference)
+        .then(() => {
+          showToast('Your 30-day free trial has started! Your order draft is restored.', 'success');
+          setHasHitOrderLimit(false);
+          refreshShop?.();
+        })
+        .catch(() => {
+          refreshShop?.();
+        });
+    }
+  }, [searchParams, router, refreshShop, showToast]);
+
   const [completedBatch, setCompletedBatch] = useState<{
     batchId: string;
     garments: {
@@ -1066,6 +1152,9 @@ export default function UnifiedNewOrderForm() {
 
       setReceiptSheetOpen(true);
       showToast(garments.length > 1 ? `${garments.length} outfits saved!` : 'Order created successfully!', 'success');
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {}
     } catch (err: any) {
       const errMsg = err?.message || 'Failed to create order';
       if (
@@ -1074,6 +1163,8 @@ export default function UnifiedNewOrderForm() {
         errMsg.toLowerCase().includes('upgrade')
       ) {
         setHasHitOrderLimit(true);
+        saveCurrentOrderDraft();
+        setUpgradeModalOpen(true);
       }
       showToast(errMsg, 'error');
     } finally {
@@ -2168,7 +2259,10 @@ export default function UnifiedNewOrderForm() {
               <button
                 type="button"
                 className={`${styles.createOrderBtn} ${styles.upgradeCtaBtn}`}
-                onClick={() => router.push(ROUTES.settingsBilling)}
+                onClick={() => {
+                  saveCurrentOrderDraft();
+                  setUpgradeModalOpen(true);
+                }}
               >
                 <span>Upgrade</span>
                 <Symbol name="arrow_forward" size={15} />
@@ -2546,6 +2640,13 @@ export default function UnifiedNewOrderForm() {
           </div>
         )}
       </BottomSheet>
+
+      <UpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        onBeforeRedirect={saveCurrentOrderDraft}
+        returnPath="/orders/new?payment=success"
+      />
     </PageLayout>
   );
 }

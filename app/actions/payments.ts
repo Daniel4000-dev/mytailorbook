@@ -26,7 +26,10 @@ import { validateBillingEnvironment, getPlanCode, getBillingEnv } from '@/lib/bi
  *  is a separate Plan on Paystack's side (there's no single Plan that can
  *  be billed either monthly or yearly), so the plan code itself encodes
  *  the choice. */
-export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'monthly') {
+export async function initializeSubscription(
+  interval: 'monthly' | 'yearly' = 'monthly',
+  returnPath: string = '/settings/billing?payment=success'
+) {
   const supabase = await createClient();
 
   validateBillingEnvironment();
@@ -108,7 +111,11 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
       // that shop. Restricting the channel here also skips the
       // method-picker screen entirely — straight to card entry.
       channels: ['card'],
-      ...(origin ? { callback_url: `${origin}/settings/billing?payment=success` } : {}),
+      ...(origin
+        ? {
+            callback_url: `${origin}${returnPath.startsWith('/') ? returnPath : `/${returnPath}`}`,
+          }
+        : {}),
       metadata: {
         shop_id: profile.shop_id,
         user_id: user.id,
@@ -258,7 +265,10 @@ export async function confirmSubscriptionPayment(reference: string) {
  *  subscription once it ends. Mirrors initializeSubscription's shape and
  *  origin-detection so the same client-side redirect/popup flow works for
  *  both. */
-export async function startFreeTrial(interval: 'monthly' | 'yearly' = 'monthly') {
+export async function startFreeTrial(
+  interval: 'monthly' | 'yearly' = 'monthly',
+  returnPath: string = '/settings/billing?trial=success'
+) {
   const supabase = await createClient();
 
   validateBillingEnvironment();
@@ -339,7 +349,11 @@ export async function startFreeTrial(interval: 'monthly' | 'yearly' = 'monthly')
       // actually ends.
       amount: TRIAL_VERIFICATION_AMOUNT_NGN * 100,
       channels: ['card'],
-      ...(origin ? { callback_url: `${origin}/settings/billing?trial=success` } : {}),
+      ...(origin
+        ? {
+            callback_url: `${origin}${returnPath.startsWith('/') ? returnPath : `/${returnPath}`}`,
+          }
+        : {}),
       metadata: {
         shop_id: billingShop.id,
         user_id: user.id,

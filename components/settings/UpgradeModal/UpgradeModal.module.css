@@ -1,0 +1,230 @@
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.heroHeader {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconBadge {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
+  border: 1.5px solid rgba(234, 179, 8, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #D97706;
+}
+
+:global([data-theme='dark']) .iconBadge {
+  color: #FBBF24;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.modalSub {
+  font-size: 13.5px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+  line-height: 1.45;
+  max-width: 380px;
+}
+
+.intervalToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-surface-subtle, rgba(0, 0, 0, 0.04));
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+}
+
+.intervalBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.intervalBtnActive {
+  background: var(--sf-surface-card, #FFFFFF);
+  color: var(--sf-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme='dark']) .intervalBtnActive {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.discountBadge {
+  background: #10B981;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.pricingCard {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(147, 51, 234, 0.06) 100%);
+  border: 1.5px solid rgba(79, 70, 229, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+:global([data-theme='dark']) .pricingCard {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(147, 51, 234, 0.12) 100%);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.priceLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.priceAmount {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--sf-text-primary);
+}
+
+.pricePeriod {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sf-text-tertiary);
+}
+
+.benefitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.35;
+}
+
+.checkIcon {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.trialCallout {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: #065F46;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:global([data-theme='dark']) .trialCallout {
+  color: #34D399;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.actionRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.upgradeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.15s ease;
+}
+
+.upgradeBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45);
+}
+
+.upgradeBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.dismissBtn {
+  background: transparent;
+  border: none;
+  color: var(--sf-text-tertiary);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.15s ease;
+}
+
+.dismissBtn:hover {
+  color: var(--sf-text-primary);
+}
