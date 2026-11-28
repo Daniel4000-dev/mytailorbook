@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Avatar from '@/components/ui/Avatar/Avatar';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { formatPhone, getTelLink } from '@/lib/formatters';
@@ -35,46 +34,36 @@ export default function AgendaCard({
 
   return (
     <article className={`${styles.card} ${isCompleted ? styles.cardCompleted : ''}`}>
-      {/* ── Top Header Row ── */}
-      <div className={styles.headerRow}>
-        <div className={styles.clientBlock}>
-          {customer ? (
-            <Avatar name={customer.fullName} size="sm" shape="squircle" />
+      {/* ── Top Meta Bar: Time, Category Pill, Status Badge & Check Control ── */}
+      <div className={styles.topMetaBar}>
+        <div className={styles.timeAndCategory}>
+          {/* Contextual Craft Category Tag */}
+          {isFitting ? (
+            <span className={`${styles.categoryPill} ${styles.categoryFitting}`}>
+              <Symbol name="checkroom" size={12} />
+              <span>Fitting Session</span>
+            </span>
+          ) : isDeadline ? (
+            <span className={`${styles.categoryPill} ${styles.categoryDeadline}`}>
+              <Symbol name="local_shipping" size={12} />
+              <span>Garment Delivery</span>
+            </span>
           ) : (
-            <Avatar name={event.title} size="sm" shape="squircle" />
+            <span className={`${styles.categoryPill} ${styles.categoryTask}`}>
+              <Symbol name="task_alt" size={12} />
+              <span>Workshop Task</span>
+            </span>
           )}
 
-          <div className={styles.metaWrap}>
-            {/* Contextual Craft Category Tag */}
-            {isFitting ? (
-              <span className={`${styles.categoryPill} ${styles.categoryFitting}`}>
-                <Symbol name="checkroom" size={12} />
-                <span>Fitting Session</span>
-              </span>
-            ) : isDeadline ? (
-              <span className={`${styles.categoryPill} ${styles.categoryDeadline}`}>
-                <Symbol name="local_shipping" size={12} />
-                <span>Garment Delivery</span>
-              </span>
-            ) : (
-              <span className={`${styles.categoryPill} ${styles.categoryTask}`}>
-                <Symbol name="task_alt" size={12} />
-                <span>Workshop Task</span>
-              </span>
-            )}
-
-            <h4 className={styles.title}>{event.title}</h4>
-            {customer && <p className={styles.customerSub}>{customer.fullName}</p>}
-          </div>
-        </div>
-
-        {/* Time Tag & Action Controls */}
-        <div className={styles.timeAndStatus}>
+          {/* Time Tag */}
           <span className={styles.timeTag}>
             <Symbol name="schedule" size={12} />
             <span>{timeDisplay}</span>
           </span>
+        </div>
 
+        {/* Status Badge & Check Action */}
+        <div className={styles.statusAndCheck}>
           {isFitting && (
             <span
               className={`${styles.fittingBadge} ${
@@ -93,10 +82,21 @@ export default function AgendaCard({
               title={isCompleted ? 'Mark pending' : 'Mark completed'}
               aria-label="Toggle completion status"
             >
-              <Symbol name="check" size={14} />
+              <Symbol name="check" size={15} />
             </button>
           )}
         </div>
+      </div>
+
+      {/* ── Main Content: Title & Customer Name (No Distracting Avatar) ── */}
+      <div className={styles.contentBlock}>
+        <h4 className={styles.title}>{event.title}</h4>
+        {customer && (
+          <p className={styles.customerSub}>
+            <Symbol name="person" size={13} className={styles.customerIcon} />
+            <span>{customer.fullName}</span>
+          </p>
+        )}
       </div>
 
       {/* ── Full-Width Description Box ── */}
@@ -145,7 +145,7 @@ export default function AgendaCard({
             title="Send WhatsApp appointment reminder to client"
           >
             <WhatsappIcon size={14} />
-            <span>Remind on WhatsApp</span>
+            <span>WhatsApp Reminder</span>
           </button>
         )}
 
@@ -164,3 +164,4 @@ export default function AgendaCard({
     </article>
   );
 }
+

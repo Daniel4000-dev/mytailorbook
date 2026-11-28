@@ -77,7 +77,9 @@ describe('AgendaCard Component Mount & Integration Tests', () => {
     expect(onOpenVerdictMock).toHaveBeenCalledTimes(1);
     expect(onOpenVerdictMock).toHaveBeenCalledWith(richEvent);
 
+    // Standard non-wrapping WhatsApp CTA
     const reminderBtn = screen.getByTitle('Send WhatsApp appointment reminder to client');
+    expect(screen.getByText('WhatsApp Reminder')).toBeDefined();
     fireEvent.click(reminderBtn);
     expect(onWhatsAppReminderMock).toHaveBeenCalledTimes(1);
     expect(onWhatsAppReminderMock).toHaveBeenCalledWith(richEvent);
